@@ -1,0 +1,99 @@
+{
+  "name": "pharaonic/laravel-api-response",
+  "description": "Consistent Laravel API responses: one envelope for data, errors, resources and every paginator, with profiles, notifications, request IDs and opt-in exception rendering.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "api",
+    "api response",
+    "json",
+    "json response",
+    "envelope",
+    "pagination",
+    "resources",
+    "exceptions",
+    "request id"
+  ],
+  "homepage": "https://pharaonic.dev/packages/laravel/api-response",
+  "authors": [
+    {
+      "name": "Moamen Eltouny (Raggi)",
+      "email": "raggigroup@gmail.com"
+    }
+  ],
+  "support": {
+    "docs": "https://pharaonic.dev/packages/laravel/api-response",
+    "issues": "https://github.com/Pharaonic/laravel-api-response/issues",
+    "source": "https://github.com/Pharaonic/laravel-api-response"
+  },
+  "require": {
+    "php": ">=8.0 <8.1",
+    "illuminate/container": "^6.20",
+    "illuminate/contracts": "^6.20",
+    "illuminate/http": "^6.20",
+    "illuminate/pagination": "^6.20",
+    "illuminate/support": "^6.20"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.5",
+    "orchestra/testbench": "^4.18",
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^9.6.33"
+  },
+  "suggest": {
+    "pharaonic/laravel-seo": "Adds the page's SEO tags to a response that calls withSEO() (6.1 or later)."
+  },
+  "autoload": {
+    "psr-4": {
+      "Pharaonic\\Laravel\\ApiResponse\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Pharaonic\\Laravel\\ApiResponse\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Pharaonic\\Laravel\\ApiResponse\\ApiResponseServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "@php vendor/bin/phpunit",
+    "analyse": "@php vendor/bin/phpstan analyse --memory-limit=1G",
+    "format": "@php vendor/bin/pint",
+    "format:check": "@php vendor/bin/pint --test",
+    "security": "@composer audit",
+    "check": [
+      "@composer validate --strict",
+      "@format:check",
+      "@analyse",
+      "@test",
+      "@security"
+    ]
+  },
+  "config": {
+    "audit": {
+      "abandoned": "report"
+    },
+    "policy": {
+      "advisories": {
+        "block": false,
+        "ignore": {
+          "laravel/framework": "No fixed release within Laravel 6; the application chooses the framework release.",
+          "league/commonmark": "No fixed release within Laravel 6; the application chooses the framework release.",
+          "league/flysystem": "No fixed release within Laravel 6; the application chooses the framework release.",
+          "symfony/http-foundation": "No fixed release within Laravel 6; the application chooses the framework release.",
+          "symfony/http-kernel": "No fixed release within Laravel 6; the application chooses the framework release.",
+          "symfony/process": "No fixed release within Laravel 6; the application chooses the framework release.",
+          "symfony/routing": "No fixed release within Laravel 6; the application chooses the framework release."
+        }
+      }
+    },
+    "sort-packages": true
+  },
+  "prefer-stable": true
+}
