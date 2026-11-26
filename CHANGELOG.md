@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 9.0.1 - Unreleased
+
+### Fixed
+
+- The Request IDs docs show the `api` middleware group of a Laravel 9 application (`'throttle:api'` and `SubstituteBindings::class`) instead of Laravel 6's `'throttle:60,1'` and `'bindings'`.
+
 ## 9.0.0 - 2026-11-26
 
 ### Compatibility
