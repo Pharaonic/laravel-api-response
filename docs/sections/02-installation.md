@@ -4,8 +4,8 @@ Install the package with Composer. The service provider is registered automatica
 
 ### Requirements
 
-- PHP 8.2, 8.3 or 8.4
-- Laravel 11.x
+- PHP 8.2, 8.3, 8.4 or 8.5
+- Laravel 12.x
 
 ### Composer Installation
 
@@ -35,7 +35,7 @@ Two pieces are off until you register them in your application: the [exception r
 
 ### Optional: SEO Tags
 
-To send SEO tags with `withSEO()`, also install `pharaonic/laravel-seo` 11.1 or later:
+To send SEO tags with `withSEO()`, also install `pharaonic/laravel-seo` 12.1 or later:
 
 ```bash title="Terminal" no-line-numbers
 composer require pharaonic/laravel-seo

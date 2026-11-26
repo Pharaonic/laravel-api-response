@@ -4,7 +4,7 @@
 
 ### Registering the Renderer
 
-On Laravel 11, register it in `withExceptions()` in `bootstrap/app.php`. Laravel renders anything it returns `null` for:
+On Laravel 12, register it in `withExceptions()` in `bootstrap/app.php`. Laravel renders anything it returns `null` for:
 
 ```php title="bootstrap/app.php"
 use Illuminate\Foundation\Configuration\Exceptions;
