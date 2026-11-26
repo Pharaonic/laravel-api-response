@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## 8.0.0 - Unreleased
+
+### Fixed
+
+- A `TokenMismatchException` sends "CSRF token mismatch." (translated) after Laravel 8 turns it into a 419 HTTP exception, instead of the "Page Expired" status text.
+- Only an HTTP exception is read through its previous exception, so an unrelated exception that wraps a `ModelNotFoundException` sends a 500, not a 404.
+
+### Compatibility
+
+- Laravel 8.75+ on PHP 8.0 and 8.1.
+- The same API and output as 7.0.0.
+- The exception renderer is registered with `$this->renderable(new ExceptionRenderer)` in the handler's `register()`.
+- `withSEO()` needs pharaonic/laravel-seo 8.1 or later.
+- Cursor paginators are covered by the tests.
+
 ## 7.0.0 - Unreleased
 
 ### Added
