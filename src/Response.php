@@ -172,7 +172,7 @@ final class Response implements Responsable
      * with a label and a URL, a duration in milliseconds (0 keeps it until it is dismissed), and a
      * position on the screen.
      *
-     * @param  array<array-key, mixed>|null  $action  ['label' => '...', 'url' => '...']
+     * @param  array{label: string, url: string}|null  $action
      */
     public function notify(
         string $message,
