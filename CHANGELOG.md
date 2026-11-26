@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## 12.0.0 - Unreleased
+
+### Compatibility
+
+- Laravel 12 on PHP 8.2, 8.3, 8.4 and 8.5.
+- The same API and output as 11.0.0.
+- `withSEO()` needs pharaonic/laravel-seo 12.1 or later.
+- The tests run on Pest 3 or 4 and PHPUnit 11 or 12.
+
 ## 11.0.0 - Unreleased
 
 ### Compatibility
