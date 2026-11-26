@@ -7,7 +7,7 @@ subtitle: Return the response from your controller; Laravel builds it.
 items:
   - icon: code-brackets
     title: One Envelope
-    text: "`success`, `message`, `data` or `errors`, and `meta`, with your own `null`, `[]` or `0` always kept and optional fields only when used."
+    text: "`success`, `message`, `data` or `code` and `errors`, and `meta`, with your own `null`, `[]` or `0` always kept and optional fields only when used."
   - icon: lines
     title: Every Paginator
     text: Length-aware, simple and cursor paginators become their items plus `meta.pagination`, without invented totals, with query-string control.
