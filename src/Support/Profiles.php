@@ -4,68 +4,58 @@ declare(strict_types=1);
 
 namespace Pharaonic\Laravel\ApiResponse\Support;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Http\Request;
-use Pharaonic\Laravel\ApiResponse\Profiles\Profile;
-use Symfony\Component\HttpFoundation\AcceptHeader;
+use InvalidArgumentException;
+use Pharaonic\Laravel\ApiResponse\Profile;
 
 /**
- * Chooses a response's profile: the response's own choice, then the route's
- * (UseResponseProfile), then the negotiated media type, then the default.
+ * Builds a profile of pharaonic.api-response.profiles and checks its field names.
  *
  * @internal
  */
 final class Profiles
 {
-    public const ATTRIBUTE = 'pharaonic.api-response.profile';
-
-    public function __construct(private Container $container, private Settings $settings)
-    {
-    }
+    public const FIELDS = ['success', 'message', 'data', 'errors', 'meta', 'notifications', 'seo', 'request_id'];
 
     /**
-     * @return array{profile: Profile, fields: array<string, string>, media_type: ?string}
+     * @return array{fields: array<string, string>, request_id_in_body: bool}
      */
-    public function resolve(?string $explicit, Request $request): array
+    public static function resolve(Container $container, Repository $config, ?string $name): array
     {
-        $mediaType = null;
-        $name = $explicit;
+        $default = $config->get('pharaonic.api-response.default_profile', 'default');
+        $name ??= is_string($default) ? $default : get_debug_type($default);
+        $profiles = $config->get('pharaonic.api-response.profiles', []);
+        $class = is_array($profiles) ? ($profiles[$name] ?? null) : null;
 
-        if ($name === null) {
-            $route = $request->attributes->get(self::ATTRIBUTE);
-            $name = is_string($route) ? $route : null;
+        if ($class === null) {
+            throw new InvalidArgumentException("The response profile [{$name}] is not defined in pharaonic.api-response.profiles.");
         }
 
-        if ($name === null && $this->settings->negotiates()) {
-            [$name, $mediaType] = $this->negotiate($request);
+        if (! is_string($class) || ! is_a($class, Profile::class, true)) {
+            throw new InvalidArgumentException("The response profile [{$name}] must be a class that extends ".Profile::class.'.');
         }
-
-        $class = $this->settings->profileClass($name ?? $this->settings->defaultProfile());
-        $profile = $this->container->make($class);
 
         /** @var Profile $profile */
-        return [
-            'profile' => $profile,
-            'fields' => $this->settings->fields($profile->fields()),
-            'media_type' => $mediaType,
-        ];
-    }
+        $profile = $container->make($class);
+        $fields = array_combine(self::FIELDS, self::FIELDS);
 
-    /**
-     * @return array{0: ?string, 1: ?string}
-     */
-    private function negotiate(Request $request): array
-    {
-        $types = $this->settings->mediaTypes();
-
-        foreach (AcceptHeader::fromString($request->headers->get('Accept') ?? '')->all() as $item) {
-            $value = strtolower($item->getValue());
-
-            if ($item->getQuality() > 0 && isset($types[$value])) {
-                return [$types[$value], $value];
+        foreach ($profile->fields() as $field => $label) {
+            if (! isset($fields[$field])) {
+                throw new InvalidArgumentException("The response profile [{$name}] renames an unknown field [{$field}].");
             }
+
+            if ($label === '') {
+                throw new InvalidArgumentException("The response profile [{$name}] must name the [{$field}] field with a non-empty string.");
+            }
+
+            $fields[$field] = $label;
         }
 
-        return [null, null];
+        if (count(array_unique($fields)) !== count($fields)) {
+            throw new InvalidArgumentException("The response profile [{$name}] sends two fields under the same name.");
+        }
+
+        return ['fields' => $fields, 'request_id_in_body' => $profile->requestIdInBody()];
     }
 }

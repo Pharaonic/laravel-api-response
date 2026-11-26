@@ -19,13 +19,13 @@ breadcrumbs:
 card:
   topic: api
   icon: code-brackets
-  tags: api response json envelope pagination resources exceptions error-codes notifications request-id profiles content-negotiation
-  description: One consistent JSON envelope for Laravel API responses. Data, errors, API resources and every paginator, with profiles, structured notifications, request IDs and opt-in exception rendering.
+  tags: api response json envelope pagination resources exceptions notifications request-id profiles
+  description: One consistent JSON envelope for Laravel API responses. Success and error responses, API resources and every paginator, with simple profiles, notifications, request IDs and opt-in exception rendering.
 
 seo:
   title: "{package.fullName} - Consistent JSON API Responses"
-  description: "{package.name} is a Laravel package for consistent JSON API responses: one envelope for data, errors, resources and paginators, with error codes, profiles, notifications, request IDs and opt-in exception rendering. {package.downloadsShort}+ downloads, {package.license} licensed."
-  keywords: laravel api response, laravel json response, api envelope, laravel pagination json, api resources, api error codes, laravel exception json, request id, content negotiation
+  description: "{package.name} is a Laravel package for consistent JSON API responses: one envelope for data, errors, resources and paginators, with profiles, notifications, request IDs and opt-in exception rendering. {package.downloadsShort}+ downloads, {package.license} licensed."
+  keywords: laravel api response, laravel json response, api envelope, laravel pagination json, api resources, laravel exception json, request id, api notifications
   author: Pharaonic
   images:
     - "{package.cover}"

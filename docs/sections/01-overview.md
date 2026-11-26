@@ -6,28 +6,32 @@
 
 # API Response
 
-API Response gives your Laravel API one predictable response shape. You return a `Response` builder from a controller, chain what the response needs in any order, and Laravel turns it into a JSON response when it sends it. Data, API resources and paginators are resolved for you, errors carry stable application codes, and optional parts such as notifications, request IDs and SEO tags appear only when you ask for them.
+API Response gives your Laravel API one predictable JSON shape. You return `Response::success()` or `Response::error()` from a controller, chain what the response needs in any order, and Laravel builds the JSON response when it sends it. Resources and paginators are resolved for you, and notifications, request IDs and SEO tags appear only when you use them.
 
 :::features
 ### One Envelope {icon="code-brackets"}
-success, message, code, data, errors and meta in a fixed order. Fields you never set are left out; values you set, even null or an empty list, are always sent.
+success, message, data and meta for a success; success, message, errors and meta for an error. Data you set, even null or an empty list, is always sent.
 
 ### Every Paginator {icon="lines"}
-Length-aware, simple and cursor paginators, and your own through an adapter, become their items plus meta.pagination with only the facts the paginator knows.
+Length-aware, simple and cursor paginators become their items plus meta.pagination, with only the facts each paginator knows.
 
-### API Resources {icon="document"}
-JsonResource and resource collections resolve with the current request, keep conditional fields and merge with() and additional() into meta.
-
-### Opt-in Exceptions {icon="alert-circle"}
-An exception renderer you register yourself maps API exceptions to the envelope, keeps their headers, and never reports or touches web pages.
+### JSON Exceptions {icon="alert-circle"}
+A renderer you register yourself maps API exceptions to the error envelope, keeps their headers and never leaks server errors.
 
 ### Profiles {icon="switch"}
-Rename fields, reshape pagination and notifications, or drop the envelope per response, per route or by Accept media type.
+A small profile class renames the envelope fields or leaves the request ID out, chosen per response or by default.
+
+### Notifications {icon="check-circle"}
+Attach success, info, warning and error messages for the client to show, in the order you add them.
 
 ### Request IDs {icon="tag"}
-A middleware assigns a validated request ID, sends it in a header and the body, and adds it to every log record of that request.
+A middleware sends a request ID in a header and the body, and adds it to your log records.
 :::
 
 :::info Nothing is rewritten behind your back
-The package shapes only the builders you return. Responses you build with `response()->json()`, views and redirects are untouched, and exception rendering stays off until you register it.
+Only the responses you build with `Response` are shaped. `response()->json()`, views and redirects are untouched, and exception rendering stays off until you register it.
+:::
+
+:::warning A redesign in 6.1
+6.1 replaces the 6.0 API: the `Response` class, status helpers, error codes, the old profile hooks, adapters, mappers, macros, content negotiation and the package translations are gone. Read the changelog before upgrading from 6.0.
 :::

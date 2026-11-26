@@ -2,108 +2,52 @@
 
 declare(strict_types=1);
 
-use Pharaonic\Laravel\ApiResponse\Profiles\Profile;
+use Pharaonic\Laravel\ApiResponse\Profile;
 
 return [
 
     /*
-    | The profile a response uses when nothing else chooses one.
+    | The profile a response uses unless it calls profile().
     */
     'default_profile' => 'default',
 
     /*
     | Profile names and their classes. A profile class extends
-    | Pharaonic\Laravel\ApiResponse\Profiles\Profile.
+    | Pharaonic\Laravel\ApiResponse\Profile and overrides only what differs:
+    | the field names, and whether the body carries the request ID.
+    | A profile never adds SEO tags; only withSEO() does.
     */
     'profiles' => [
         'default' => Profile::class,
-    ],
 
-    /*
-    | Flags passed to json_encode(). JSON_THROW_ON_ERROR is always added, and
-    | JSON_PARTIAL_OUTPUT_ON_ERROR is refused: a response that cannot be
-    | encoded fails instead of being sent incomplete.
-    */
-    'json_options' => JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-
-    /*
-    | The name each envelope field is sent under. Names must be unique.
-    */
-    'envelope' => [
-        'fields' => [
-            'success' => 'success',
-            'message' => 'message',
-            'code' => 'code',
-            'data' => 'data',
-            'errors' => 'errors',
-            'meta' => 'meta',
-            'notifications' => 'notifications',
-            'seo' => 'seo',
-            'request_id' => 'request_id',
-        ],
+        // 'mobile' => App\Http\Profiles\MobileProfile::class,
     ],
 
     'pagination' => [
 
-        // Send paginators as their items plus meta.pagination.
-        'enabled' => true,
+        // Keep the request's query string in pagination links unless a response says otherwise.
+        'query_string' => true,
 
-        'query_string' => [
-
-            // Keep the request's query string in pagination links by default.
-            'enabled' => true,
-
-            // Keys never copied into pagination links.
-            'except' => ['token', 'api_key', 'access_token', 'password'],
-        ],
-
-        // Your own Contracts\PaginationAdapter classes, checked before the built-in ones.
-        'adapters' => [],
-    ],
-
-    'notifications' => [
-        'default_type' => 'info',
-        'types' => ['success', 'error', 'warning', 'info'],
-    ],
-
-    'seo' => [
-
-        // What withSEO() does without pharaonic/laravel-seo: 'throw' or 'ignore'.
-        'missing_driver' => 'throw',
-    ],
-
-    'request_id' => [
-        'header' => 'X-Request-ID',
-
-        // 'uuid', or an invokable class that returns the ID.
-        'generator' => 'uuid',
-
-        // Reuse a valid incoming ID instead of generating one.
-        'trust_incoming' => false,
-
-        'max_length' => 128,
-
-        // Add the ID to the response body unless the response says otherwise.
-        'include_in_body' => true,
-
-        // Share the ID with the log context (Laravel 8 and later).
-        'logging' => true,
+        // Query keys never copied into pagination links.
+        'sensitive_query' => ['token', 'api_key', 'access_token', 'password'],
     ],
 
     'exceptions' => [
 
-        // Requests matching these paths are rendered as JSON, as well as requests that expect JSON.
+        // The registered ExceptionRenderer renders requests that expect JSON and requests to these paths.
         'paths' => ['api/*'],
-
-        // Exception class => Contracts\ExceptionMapper class.
-        'mappers' => [],
     ],
 
-    'content_negotiation' => [
-        'enabled' => false,
+    'request_id' => [
 
-        // Accept media type => profile name, e.g. 'application/vnd.acme.mobile+json' => 'mobile'.
-        'media_types' => [],
+        // The header AssignRequestId sends the ID in, and reads it from when trust_incoming is on.
+        'header' => 'X-Request-ID',
+
+        // Reuse a valid incoming ID (1 to 128 letters, digits, '.', '_', ':' or '-') instead of generating one.
+        'trust_incoming' => false,
+
+        // Add the ID to extra.request_id of the default log channel's records.
+        'logging' => true,
     ],
 
 ];

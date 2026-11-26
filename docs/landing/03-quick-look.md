@@ -1,7 +1,7 @@
 ---
 view: components.packages.quick-look
 title: A quick look
-subtitle: A paginated resource collection with a message, metadata and a notification.
+subtitle: A paginated resource collection with a message and a notification.
 file: app/Http/Controllers/PostController.php
 language: php
 code: |
@@ -12,8 +12,7 @@ code: |
   public function index()
   {
       return Response::success(PostResource::collection(Post::query()->paginate(15)))
-          ->message('Posts retrieved successfully.')
-          ->meta('version', '1.0')
+          ->message('Posts retrieved.')
           ->notify('Posts loaded.', 'success')
           ->withQueryString(['search', 'sort']);
   }

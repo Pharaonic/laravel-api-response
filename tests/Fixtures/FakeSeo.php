@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Pharaonic\Laravel\ApiResponse\Tests\Fixtures;
 
 /**
- * Stands in for pharaonic/laravel-seo's manager: only toArray() is used.
+ * Stands in for the manager of pharaonic/laravel-seo: only toArray() is used.
  */
 class FakeSeo
 {
