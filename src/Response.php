@@ -31,6 +31,8 @@ final class Response implements Responsable
 {
     private const NOTIFICATION_TYPES = ['success', 'info', 'warning', 'error'];
 
+    private const NOTIFICATION_POSITIONS = ['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'];
+
     /**
      * The request attribute that holds the metadata shared with shareMeta().
      */
@@ -44,7 +46,7 @@ final class Response implements Responsable
     /** @var array<array-key, mixed> */
     private array $meta = [];
 
-    /** @var list<array{type: string, message: string}> */
+    /** @var list<array<string, mixed>> */
     private array $notifications = [];
 
     private ?string $profile = null;
@@ -166,16 +168,60 @@ final class Response implements Responsable
 
     /**
      * Add a notification for the client to show. Notifications keep the order they were added in.
+     * Each optional part is sent only when given: a title, a code the client can act on, an action
+     * with a label and a URL, a duration in milliseconds (0 keeps it until it is dismissed), and a
+     * position on the screen.
+     *
+     * @param  array<array-key, mixed>|null  $action  ['label' => '...', 'url' => '...']
      */
-    public function notify(string $message, string $type = 'info'): self
-    {
+    public function notify(
+        string $message,
+        string $type = 'info',
+        ?string $title = null,
+        ?string $code = null,
+        ?array $action = null,
+        ?int $duration = null,
+        ?string $position = null
+    ): self {
         if (! in_array($type, self::NOTIFICATION_TYPES, true)) {
             throw new InvalidArgumentException("The notification type [{$type}] must be one of: ".implode(', ', self::NOTIFICATION_TYPES).'.');
         }
 
-        $this->notifications[] = ['type' => $type, 'message' => $message];
+        if ($duration !== null && $duration < 0) {
+            throw new InvalidArgumentException("A notification duration is in milliseconds and cannot be negative, {$duration} given.");
+        }
+
+        if ($position !== null && ! in_array($position, self::NOTIFICATION_POSITIONS, true)) {
+            throw new InvalidArgumentException("The notification position [{$position}] must be one of: ".implode(', ', self::NOTIFICATION_POSITIONS).'.');
+        }
+
+        $this->notifications[] = array_filter([
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'code' => $code,
+            'action' => $action === null ? null : self::notificationAction($action),
+            'duration' => $duration,
+            'position' => $position,
+        ], static fn (mixed $value): bool => $value !== null);
 
         return $this;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $action
+     * @return array{label: string, url: string}
+     */
+    private static function notificationAction(array $action): array
+    {
+        $label = $action['label'] ?? null;
+        $url = $action['url'] ?? null;
+
+        if (count($action) !== 2 || ! is_string($label) || $label === '' || ! is_string($url) || $url === '') {
+            throw new InvalidArgumentException('A notification action needs a non-empty label and url, and nothing else.');
+        }
+
+        return ['label' => $label, 'url' => $url];
     }
 
     /**
