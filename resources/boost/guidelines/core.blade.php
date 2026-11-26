@@ -5,7 +5,7 @@ One JSON envelope for Laravel API responses: `Response::success()` and `Response
 ### Conventions
 
 - Import `Pharaonic\Laravel\ApiResponse\Response` (Laravel has its own `Response` facade; alias it `as ApiResponse` where both are used). Return the builder from the controller; it is `Responsable`, so do not call `response()` unless you need the concrete response.
-- A success is `{success, message, data, meta}` with a 2xx status; an error is `{success, message, errors, meta}` with a 4xx or 5xx status. `meta` is `null` while empty. 204 and 205 have no body.
+- A success is `{success, message, data, meta}` with a 2xx status; an error is `{success, message, code, errors, meta}`, with `code` set by `->code('auth.expired')` and `null` until then, with a 4xx or 5xx status. `meta` is `null` while empty. 204 and 205 have no body.
 - Never wrap data yourself: pass the model, the resource or the paginator. Paginators put their metadata in `meta.pagination` (`type`, `pages`, `items` or `cursors`, `links`); `pagination` is reserved in `meta()`.
 - `notify()` takes its optional parts by name (`title`, `code`, `action` as `['label' => ..., 'url' => ...]`, `duration` in milliseconds, `position`); each is sent only when given.
 - Metadata that every response of a request needs comes from `Response::shareMeta()` in a middleware, never from static state.

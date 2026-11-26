@@ -11,6 +11,7 @@ All classes are in the `Pharaonic\Laravel\ApiResponse` namespace. Classes under 
 | `Response::shareMeta(string\|array $key, mixed $value = null)` | Adds metadata to every response of the current request, such as from a middleware. `pagination` is reserved. | `void` |
 | `message(?string $message)` | Sets the message. | `Response` |
 | `status(int $status)` | Sets the status: 2xx for a success, 4xx or 5xx for an error. 204 and 205 have no body. | `Response` |
+| `code(?string $code)` | Sets the code of an error, sent as `null` until set; refused on a success. | `Response` |
 | `errors(?array $errors)` | Sets the errors of an error; refused on a success. | `Response` |
 | `meta(string\|array $key, mixed $value = null)` | Adds metadata: one key and value, or an array of them. `pagination` is reserved. | `Response` |
 | `notify(string $message, string $type = 'info', ?string $title = null, ?string $code = null, ?array $action = null, ?int $duration = null, ?string $position = null)` | Adds a notification: `success`, `info`, `warning` or `error`, with an optional title, code, action (`label` and `url`), duration in milliseconds and position. | `Response` |
@@ -35,5 +36,5 @@ All classes are in the `Pharaonic\Laravel\ApiResponse` namespace. Classes under 
 
 | Exception | When |
 | --- | --- |
-| `InvalidArgumentException` | A status outside the allowed range, `errors()` on a success, `meta('pagination', ...)` or `shareMeta('pagination', ...)`, an unknown notification type or position, a notification action without exactly a `label` and `url`, a negative notification duration, an unknown profile, a profile class that does not extend `Profile`, or an invalid profile field. |
+| `InvalidArgumentException` | A status outside the allowed range, `errors()` or `code()` on a success, `meta('pagination', ...)` or `shareMeta('pagination', ...)`, an unknown notification type or position, a notification action without exactly a `label` and `url`, a negative notification duration, an unknown profile, a profile class that does not extend `Profile`, or an invalid profile field. |
 | `LogicException` | `withSEO()` without pharaonic/laravel-seo. |

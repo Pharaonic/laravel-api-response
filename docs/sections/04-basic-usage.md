@@ -58,6 +58,7 @@ return Response::error('Post not found.', 404);
 {
   "success": false,
   "message": "Post not found.",
+  "code": null,
   "errors": null,
   "meta": null
 }
@@ -70,7 +71,13 @@ return Response::error('Validation failed.', 422)
     ->errors(['email' => ['The email field is required.']]);
 ```
 
-A wrong status, or `errors()` on a success, throws an `InvalidArgumentException` when you call it, so a response never says `success: true` with a 404.
+`code()` sets a stable identifier the client can act on, such as `auth.expired`. Every error sends `code`, `null` until you set it, and a success never has one:
+
+```php title="app/Http/Controllers/SessionController.php"
+return Response::error('Your session has expired.', 401)->code('auth.expired');
+```
+
+A wrong status, or `errors()` or `code()` on a success, throws an `InvalidArgumentException` when you call it, so a response never says `success: true` with a 404.
 
 ### Metadata
 
