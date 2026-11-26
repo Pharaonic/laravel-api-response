@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## 6.1.0 - Unreleased
+## 6.1.0 - 2026-11-26
 
 A redesign around a smaller API. It breaks 6.0 code on purpose: 6.0.0 had been out for a day, and its surface was much larger than an API envelope needs.
 
