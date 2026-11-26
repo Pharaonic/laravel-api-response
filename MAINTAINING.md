@@ -13,6 +13,7 @@ One branch per Laravel major, from `6.x` to the newest major, all carrying the s
 Per-line differences beyond constraints:
 
 - Translations ship from 7.x (decided 2026-11-26): `resources/lang/{en,ar}/messages.php` under `api-response::messages`, published with the `api-response-translations` tag, to `resourcePath('lang/vendor/api-response')` on 7.x–8.x and `lang_path('vendor/api-response')` from 9.x. 6.x has none and its messages go through the application's JSON translations; 6.x was released without them and stays that way.
+- Laravel Boost resources ship from 10.x (`resources/boost`), as `LARAVEL.md` requires; the lines below have none.
 - From 10.x, `meta.pagination` is grouped: `type`, `pages`, `items` or `cursors`, `links` (decided 2026-11-26). 6.x–9.x keep the flat shape.
 
 - Cursor paginators exist from Laravel 8.41. `Support\Pagination` names their contract by string, so it does nothing below; the cursor test skips there.

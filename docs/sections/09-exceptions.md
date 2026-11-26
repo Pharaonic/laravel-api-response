@@ -4,12 +4,12 @@
 
 ### Registering the Renderer
 
-On Laravel 9, register it with `renderable()` in the `register()` method of your application's handler. Laravel renders anything it returns `null` for:
+On Laravel 10, register it with `renderable()` in the `register()` method of your application's handler. Laravel renders anything it returns `null` for:
 
 ```php title="app/Exceptions/Handler.php"
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 
-public function register()
+public function register(): void
 {
     $this->renderable(new ExceptionRenderer);
 }
@@ -39,8 +39,8 @@ The renderer also returns `null`, leaving the exception to Laravel, for:
 ```json title="Response" no-copy
 {
   "success": false,
-  "message": "The email must be a valid email address.",
-  "errors": {"email": ["The email must be a valid email address."]},
+  "message": "The email field must be a valid email address.",
+  "errors": {"email": ["The email field must be a valid email address."]},
   "meta": null
 }
 ```

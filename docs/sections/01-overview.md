@@ -2,6 +2,7 @@
 - Laravel Package {color=blue}
 - {release.label} {color=green}
 - {package.license} License {color=purple}
+- AI Ready {color=violet}
 :::
 
 # API Response
@@ -26,6 +27,19 @@ Attach success, info, warning and error messages for the client to show, in the 
 
 ### Request IDs {icon="tag"}
 A middleware sends a request ID in a header and the body, and adds it to your log records.
+
+### Shared Metadata {icon="share"}
+Add metadata to one response, or share it from a middleware with every response of the request.
+
+### SEO Tags {icon="search"}
+Send the page's tags from pharaonic/laravel-seo with one call, never by default.
+
+### AI Ready {icon="bot"}
+Laravel Boost guideline and skill included, so php artisan boost:install teaches your coding agent the package.
+:::
+
+:::success AI Ready
+API Response ships Laravel Boost resources: a guideline loaded in every session and an `api-response-development` skill loaded when your agent works on API responses. Run `php artisan boost:install` and Claude Code, Cursor, Codex, Copilot or Gemini CLI build responses, errors and paginated lists the way the package expects. See [AI Ready](#ai-ready).
 :::
 
 :::info Nothing is rewritten behind your back
