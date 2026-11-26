@@ -21,7 +21,7 @@ test('the translations are published under their tags', function () {
     foreach (['pharaonic-translations', 'api-response-translations'] as $tag) {
         $paths = ServiceProvider::pathsToPublish(ApiResponseServiceProvider::class, $tag);
 
-        $this->assertSame([$this->app->resourcePath('lang/vendor/api-response')], array_values($paths), $tag);
+        $this->assertSame([lang_path('vendor/api-response')], array_values($paths), $tag);
     }
 });
 
