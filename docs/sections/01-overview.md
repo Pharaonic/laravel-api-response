@@ -11,7 +11,7 @@ API Response gives your Laravel API one predictable JSON shape. You return `Resp
 
 :::features
 ### One Envelope {icon="code-brackets"}
-success, message, data and meta for a success; success, message, errors and meta for an error. Data you set, even null or an empty list, is always sent.
+success, message, data and meta for a success; success, message, code, errors and meta for an error. Data you set, even null or an empty list, is always sent.
 
 ### Every Paginator {icon="lines"}
 Length-aware, simple and cursor paginators become their items plus meta.pagination, with only the facts each paginator knows.
