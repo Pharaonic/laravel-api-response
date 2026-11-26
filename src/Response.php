@@ -56,9 +56,7 @@ final class Response implements Responsable
     /** @var list<string>|bool|null null: the configured default, true: every key, false: none, list: only these keys */
     private array|bool|null $queryString = null;
 
-    private function __construct(private bool $error, private int $status, private mixed $data)
-    {
-    }
+    private function __construct(private bool $error, private int $status, private mixed $data) {}
 
     /**
      * A success (200) carrying the data: a value, an array, a model, a resource or a paginator.

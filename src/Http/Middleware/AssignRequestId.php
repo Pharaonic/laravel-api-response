@@ -19,9 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class AssignRequestId
 {
-    public function __construct(private Container $container, private Repository $config)
-    {
-    }
+    public function __construct(private Container $container, private Repository $config) {}
 
     public function handle(Request $request, Closure $next): mixed
     {
