@@ -4,7 +4,7 @@
 
 ### Registering the Renderer
 
-On Laravel 8, register it with `renderable()` in the `register()` method of your application's handler. Laravel renders anything it returns `null` for:
+On Laravel 9, register it with `renderable()` in the `register()` method of your application's handler. Laravel renders anything it returns `null` for:
 
 ```php title="app/Exceptions/Handler.php"
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
@@ -39,7 +39,7 @@ The renderer also returns `null`, leaving the exception to Laravel, for:
 ```json title="Response" no-copy
 {
   "success": false,
-  "message": "The given data was invalid.",
+  "message": "The email must be a valid email address.",
   "errors": {"email": ["The email must be a valid email address."]},
   "meta": null
 }
@@ -63,10 +63,10 @@ The package's messages follow the application locale, from `api-response::messag
 | `forbidden` | This action is unauthorized. |
 | `page_expired` | CSRF token mismatch. |
 | `too_many_attempts` | Too Many Attempts. |
-| `validation` | The given data was invalid. |
+| `validation` | The given data was invalid. (a validation error with that message; Laravel 9 sends the first error instead) |
 | `status.<code>` | the status text of an HTTP exception without a message, e.g. `status.503` is Service Unavailable |
 
-Laravel's own English messages (Unauthenticated., This action is unauthorized., The given data was invalid., Too Many Attempts., CSRF token mismatch.) are translated through the same lines. Any other exception message is yours and is sent as it is, so translate it where you throw: `abort(409, __('orders.exists'))`.
+Laravel's own English messages (Unauthenticated., This action is unauthorized., Too Many Attempts., CSRF token mismatch.) are translated through the same lines. A validation error's message is its first error, which Laravel translates with its own validation lines. Any other exception message is yours and is sent as it is, so translate it where you throw: `abort(409, __('orders.exists'))`.
 
 Publish the files to change a line or add a language:
 
@@ -74,7 +74,7 @@ Publish the files to change a line or add a language:
 php artisan vendor:publish --tag=api-response-translations
 ```
 
-```php title="resources/lang/vendor/api-response/fr/messages.php"
+```php title="lang/vendor/api-response/fr/messages.php"
 return [
     'server_error' => 'Erreur du serveur.',
     'not_found' => 'Introuvable.',

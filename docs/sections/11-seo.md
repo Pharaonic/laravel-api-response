@@ -9,7 +9,7 @@ seo()->description->set('Who we are.');
 return Response::success($page)->withSEO();
 ```
 
-The tags are what `seo()->toArray()` returns (laravel-seo 8.1 or later), read when the response is built, so set them anywhere before you return.
+The tags are what `seo()->toArray()` returns (laravel-seo 9.1 or later), read when the response is built, so set them anywhere before you return.
 
 :::warning laravel-seo must be installed
 `withSEO()` without laravel-seo throws a `LogicException` that tells you to run `composer require pharaonic/laravel-seo`, instead of sending a response without the tags you asked for.

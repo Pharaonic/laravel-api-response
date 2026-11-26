@@ -4,8 +4,8 @@ Install the package with Composer. The service provider is registered automatica
 
 ### Requirements
 
-- PHP 8.0 or 8.1
-- Laravel 8.x (8.75 or later)
+- PHP 8.0, 8.1 or 8.2
+- Laravel 9.x (9.33 or later)
 
 ### Composer Installation
 
@@ -23,7 +23,7 @@ php artisan vendor:publish --tag=api-response-config
 
 ### Publish Translations
 
-The package's messages ship in English and Arabic and follow the application locale. Publish them to `resources/lang/vendor/api-response` to change a line or add a language:
+The package's messages ship in English and Arabic and follow the application locale. Publish them to `lang/vendor/api-response` to change a line or add a language:
 
 ```bash title="Terminal" no-line-numbers
 php artisan vendor:publish --tag=api-response-translations
@@ -35,7 +35,7 @@ Two pieces are off until you register them in your application: the [exception r
 
 ### Optional: SEO Tags
 
-To send SEO tags with `withSEO()`, also install `pharaonic/laravel-seo` 8.1 or later:
+To send SEO tags with `withSEO()`, also install `pharaonic/laravel-seo` 9.1 or later:
 
 ```bash title="Terminal" no-line-numbers
 composer require pharaonic/laravel-seo

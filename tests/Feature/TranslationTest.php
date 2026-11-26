@@ -38,7 +38,8 @@ test('the messages follow the application locale', function () {
     $this->getJson('api/forbidden')->assertJson(['message' => 'غير مصرح لك بتنفيذ هذا الإجراء.']);
     $this->getJson('api/csrf')->assertJson(['message' => 'رمز CSRF غير متطابق.']);
     $this->getJson('api/unavailable')->assertJson(['message' => 'الخدمة غير متاحة']);
-    $this->getJson('api/validate')->assertStatus(422)->assertJson(['message' => 'البيانات المدخلة غير صالحة.']);
+    // From Laravel 9 the message is the first validation error, translated by Laravel's own validation lines.
+    $this->getJson('api/validate')->assertStatus(422)->assertJson(['message' => 'The email field is required.']);
 
     $this->getJson('api/limited')->assertOk();
     $this->getJson('api/limited')->assertStatus(429)->assertJson(['message' => 'محاولات كثيرة جدًا.']);

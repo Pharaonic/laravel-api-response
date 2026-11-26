@@ -23,7 +23,7 @@ final class ApiResponseServiceProvider extends ServiceProvider
             ], ['pharaonic', 'laravel-api-response', 'pharaonic-config', 'api-response-config']);
 
             $this->publishes([
-                __DIR__.'/../resources/lang' => $this->app->resourcePath('lang/vendor/api-response'),
+                __DIR__.'/../resources/lang' => lang_path('vendor/api-response'),
             ], ['pharaonic', 'laravel-api-response', 'pharaonic-translations', 'api-response-translations']);
         }
     }
