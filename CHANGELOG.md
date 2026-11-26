@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 6.1.1 - Unreleased
+
+### Fixed
+
+- Only an HTTP exception is read through its previous exception, so an unrelated exception that wraps a `ModelNotFoundException` sends a 500, not a 404.
+- The `LogicException` of `withSEO()` without pharaonic/laravel-seo no longer names a release.
+
 ## 6.1.0 - 2026-11-26
 
 A redesign around a smaller API. It breaks 6.0 code on purpose: 6.0.0 had been out for a day, and its surface was much larger than an API envelope needs.
