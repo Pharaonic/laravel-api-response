@@ -28,6 +28,17 @@ use Throwable;
  */
 final class ExceptionRenderer
 {
+    /**
+     * Laravel's own English messages, matched exactly, and the line that translates each one.
+     */
+    private const FRAMEWORK = [
+        'Unauthenticated.' => 'unauthenticated',
+        'This action is unauthorized.' => 'forbidden',
+        'The given data was invalid.' => 'validation',
+        'Too Many Attempts.' => 'too_many_attempts',
+        'CSRF token mismatch.' => 'page_expired',
+    ];
+
     public function __invoke(Throwable $exception, Request $request): ?SymfonyResponse
     {
         $config = Container::getInstance()->make('config');
@@ -43,7 +54,7 @@ final class ExceptionRenderer
                 return null;
             }
 
-            $error = Response::error($this->translate('Server Error.'), 500);
+            $error = Response::error($this->message('server_error', 'Server Error.'), 500);
         }
 
         $response = $error->toResponse($request);
@@ -81,24 +92,24 @@ final class ExceptionRenderer
         if ($exception instanceof ValidationException) {
             $status = $exception->status >= 400 && $exception->status <= 599 ? $exception->status : 422;
 
-            return Response::error($exception->getMessage(), $status)->errors($exception->errors());
+            return Response::error($this->framework($exception->getMessage()), $status)->errors($exception->errors());
         }
 
         if ($exception instanceof AuthenticationException) {
-            return Response::error($exception->getMessage() ?: $this->translate('Unauthenticated.'), 401);
+            return Response::error($this->framework($exception->getMessage()) ?: $this->message('unauthenticated', 'Unauthenticated.'), 401);
         }
 
         if ($exception instanceof AuthorizationException) {
-            return Response::error($exception->getMessage() ?: $this->translate('This action is unauthorized.'), 403);
+            return Response::error($this->framework($exception->getMessage()) ?: $this->message('forbidden', 'This action is unauthorized.'), 403);
         }
 
         // Laravel's message names the model class and the keys, so it is never sent.
         if ($exception instanceof ModelNotFoundException || $exception->getPrevious() instanceof ModelNotFoundException) {
-            return Response::error($this->translate('Not Found.'), 404);
+            return Response::error($this->message('not_found', 'Not Found.'), 404);
         }
 
         if ($exception instanceof TokenMismatchException) {
-            return Response::error($this->translate('CSRF token mismatch.'), 419);
+            return Response::error($this->message('page_expired', 'CSRF token mismatch.'), 419);
         }
 
         if ($exception instanceof HttpExceptionInterface) {
@@ -109,22 +120,34 @@ final class ExceptionRenderer
             }
 
             $text = SymfonyResponse::$statusTexts[$status] ?? null;
+            $message = $exception->getMessage() === ''
+                ? $this->message('status.'.$status, is_string($text) ? $text : 'Error')
+                : $this->framework($exception->getMessage());
 
-            return Response::error($exception->getMessage() ?: $this->translate(is_string($text) ? $text : 'Error'), $status);
+            return Response::error($message, $status);
         }
 
         return null;
     }
 
     /**
-     * The application's JSON translation of a package message, as Laravel translates its own error pages.
+     * A line of api-response::messages in the current locale, or its English text when the line is missing.
      */
-    private function translate(string $text): string
+    private function message(string $key, string $fallback): string
     {
         $container = Container::getInstance();
         $translator = $container->bound('translator') ? $container->make('translator') : null;
-        $line = $translator instanceof Translator ? $translator->get($text) : $text;
+        $line = 'api-response::messages.'.$key;
+        $value = $translator instanceof Translator ? $translator->get($line) : $line;
 
-        return is_string($line) ? $line : $text;
+        return is_string($value) && $value !== $line ? $value : $fallback;
+    }
+
+    /**
+     * Translate a message Laravel set in English; any other message is the application's own and is kept.
+     */
+    private function framework(string $message): string
+    {
+        return isset(self::FRAMEWORK[$message]) ? $this->message(self::FRAMEWORK[$message], $message) : $message;
     }
 }

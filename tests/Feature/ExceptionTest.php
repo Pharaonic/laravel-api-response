@@ -175,11 +175,3 @@ test('errors follow the default profile', function () {
 
     $this->getJson('api/conflict')->assertExactJson(['success' => false, 'msg' => 'Already exists.', 'problems' => null, 'meta' => null]);
 });
-
-test('package messages follow the application translations', function () {
-    $this->app['translator']->getLoader()->addJsonPath(__DIR__.'/../Fixtures/lang');
-    $this->app->setLocale('fr');
-    $this->throwing('api/crash', new RuntimeException('Boom.'));
-
-    $this->getJson('api/crash')->assertJson(['message' => 'Erreur du serveur.']);
-});
