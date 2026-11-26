@@ -7,6 +7,7 @@ namespace Pharaonic\Laravel\ApiResponse\Tests\Feature;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\Post;
 use Pharaonic\Laravel\ApiResponse\Tests\TestCase;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 final class ExceptionTest extends TestCase
@@ -223,5 +225,21 @@ final class ExceptionTest extends TestCase
         $this->throwing('api/crash', new RuntimeException('Boom.'));
 
         $this->getJson('api/crash')->assertJson(['message' => 'Erreur du serveur.']);
+    }
+
+    public function test_only_an_http_exception_is_read_through_its_previous_exception(): void
+    {
+        $this->throwing('api/wrapped', new RuntimeException('Failed.', 0, new ModelNotFoundException));
+
+        $this->getJson('api/wrapped')->assertStatus(500)->assertJson(['message' => 'Server Error.']);
+    }
+
+    public function test_a_prepared_http_exception_is_read_through_its_cause(): void
+    {
+        $this->throwing('api/model', new NotFoundHttpException('No query results for model [App\\Post] 1', new ModelNotFoundException));
+        $this->throwing('api/csrf', new HttpException(419, '', new TokenMismatchException));
+
+        $this->getJson('api/model')->assertStatus(404)->assertJson(['message' => 'Not Found.']);
+        $this->getJson('api/csrf')->assertStatus(419)->assertJson(['message' => 'CSRF token mismatch.']);
     }
 }
