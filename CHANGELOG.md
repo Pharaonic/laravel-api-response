@@ -11,7 +11,7 @@ All notable changes to this project are documented here.
 - Translations are published to `lang/vendor/api-response`.
 - `withSEO()` needs pharaonic/laravel-seo 9.1 or later.
 
-## 8.0.0 - Unreleased
+## 8.0.0 - 2026-11-26
 
 ### Fixed
 
@@ -26,7 +26,7 @@ All notable changes to this project are documented here.
 - `withSEO()` needs pharaonic/laravel-seo 8.1 or later.
 - Cursor paginators are covered by the tests.
 
-## 7.0.0 - Unreleased
+## 7.0.0 - 2026-11-26
 
 ### Added
 
