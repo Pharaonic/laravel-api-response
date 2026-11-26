@@ -16,7 +16,7 @@ use Pharaonic\Laravel\ApiResponse\Profile;
  */
 final class Profiles
 {
-    public const FIELDS = ['success', 'message', 'data', 'errors', 'meta', 'notifications', 'seo', 'request_id'];
+    public const FIELDS = ['success', 'message', 'code', 'data', 'errors', 'meta', 'notifications', 'seo', 'request_id'];
 
     /**
      * @return array{fields: array<string, string>, request_id_in_body: bool}
