@@ -4,13 +4,13 @@
 
 ### Registering the Renderer
 
-On Laravel 6, call it from `render()` in your application's handler, and let Laravel render anything it returns `null` for:
+On Laravel 7, call it from `render()` in your application's handler, and let Laravel render anything it returns `null` for:
 
 ```php title="app/Exceptions/Handler.php"
-use Exception;
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
+use Throwable;
 
-public function render($request, Exception $exception)
+public function render($request, Throwable $exception)
 {
     return (new ExceptionRenderer)($exception, $request) ?? parent::render($request, $exception);
 }
@@ -52,15 +52,33 @@ An HTTP exception keeps its headers, such as `Retry-After` and `X-RateLimit-*` f
 A 500 sends only "Server Error.": no exception class, message, file, trace or SQL. A missing model sends only "Not Found.", never the model class or the keys.
 :::
 
-### Translating the Messages
+### Translated Messages
 
-The package's own messages (Server Error., Not Found., Unauthenticated., This action is unauthorized., CSRF token mismatch., and the status texts) go through Laravel's translator, so a line in your JSON translation file replaces them:
+The package's messages follow the application locale, from `api-response::messages`. English and Arabic ship with the package; a locale without a line falls back to English.
 
-```json title="resources/lang/fr.json"
-{
-    "Server Error.": "Erreur du serveur.",
-    "Not Found.": "Introuvable."
-}
+| Key | English |
+| --- | --- |
+| `server_error` | Server Error. |
+| `not_found` | Not Found. |
+| `unauthenticated` | Unauthenticated. |
+| `forbidden` | This action is unauthorized. |
+| `page_expired` | CSRF token mismatch. |
+| `too_many_attempts` | Too Many Attempts. |
+| `validation` | The given data was invalid. |
+| `status.<code>` | the status text of an HTTP exception without a message, e.g. `status.503` is Service Unavailable |
+
+Laravel's own English messages (Unauthenticated., This action is unauthorized., The given data was invalid., Too Many Attempts., CSRF token mismatch.) are translated through the same lines. Any other exception message is yours and is sent as it is, so translate it where you throw: `abort(409, __('orders.exists'))`.
+
+Publish the files to change a line or add a language:
+
+```bash title="Terminal" no-line-numbers
+php artisan vendor:publish --tag=api-response-translations
 ```
 
-Messages that come from an exception are sent as they are, so translate them where you throw: `abort(409, __('orders.exists'))`.
+```php title="resources/lang/vendor/api-response/fr/messages.php"
+return [
+    'server_error' => 'Erreur du serveur.',
+    'not_found' => 'Introuvable.',
+    // ...
+];
+```

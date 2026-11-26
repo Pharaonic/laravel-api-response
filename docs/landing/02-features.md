@@ -16,7 +16,7 @@ items:
     text: "`JsonResource` and resource collections resolve with the current request, never as `data.data`, keeping `with()` and `additional()`."
   - icon: alert-circle
     title: JSON Exceptions
-    text: An opt-in renderer maps validation, auth, 404, throttling and server errors, keeps their headers and never leaks 500 details.
+    text: An opt-in renderer maps validation, auth, 404, throttling and server errors with translated messages, keeps their headers and never leaks 500 details.
   - icon: switch
     title: Profiles
     text: A small `Profile` class renames envelope fields or leaves the request ID out, chosen with `profile('mobile')` or as the default.

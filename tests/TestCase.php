@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pharaonic\Laravel\ApiResponse\Tests;
 
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -11,11 +12,15 @@ use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Pharaonic\Laravel\ApiResponse\ApiResponseServiceProvider;
 use Pharaonic\Laravel\ApiResponse\Response;
+use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\ApiExceptionHandler;
 use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\Post;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Throwable;
 
 abstract class TestCase extends Orchestra
 {
+    protected ?ApiExceptionHandler $handler = null;
+
     /**
      * @param  Application  $app
      * @return array<int, class-string>
@@ -93,6 +98,27 @@ abstract class TestCase extends Orchestra
         for ($i = 1; $i <= $count; $i++) {
             Post::query()->create(['title' => "Post {$i}", 'secret' => "secret {$i}"]);
         }
+    }
+
+    /**
+     * Use an application handler wired the way the documentation shows.
+     */
+    protected function useApiExceptionHandler(): ApiExceptionHandler
+    {
+        $this->handler = new ApiExceptionHandler($this->app);
+        $this->app->instance(ExceptionHandler::class, $this->handler);
+
+        return $this->handler;
+    }
+
+    /**
+     * Register a GET route that throws the exception.
+     */
+    protected function throwing(string $uri, Throwable $exception): void
+    {
+        $this->app['router']->get($uri, function () use ($exception): void {
+            throw $exception;
+        });
     }
 
     protected function requiresClass(string $class): void

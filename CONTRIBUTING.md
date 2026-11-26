@@ -4,7 +4,7 @@ Thanks for contributing to this Pharaonic package.
 
 ## Branches
 
-Each supported Laravel major has its own line: `6.x`, `7.x`, and so on up to the newest Laravel release. All lines carry the same package code; only their PHP range and Laravel constraints differ. A line only uses syntax and APIs available on the lowest PHP and Laravel version it supports. `develop` follows the newest line.
+Each supported Laravel major has its own line: `6.x`, `7.x`, and so on up to the newest Laravel release. All lines carry the same package code; only their PHP range and Laravel constraints differ, apart from the per-line differences recorded in `MAINTAINING.md`. A line only uses syntax and APIs available on the lowest PHP and Laravel version it supports. `develop` follows the newest line.
 
 ```text
 6.x  → Laravel 6

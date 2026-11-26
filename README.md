@@ -2,9 +2,9 @@
 
 <p align="center">
   <a href="https://php.net" target="_blank"><img src="https://img.shields.io/static/v1?label=PHP&message=8.0&color=blue&style=flat-square" alt="PHP Version : 8.0"></a>
-  <a href="https://laravel.com" target="_blank"><img src="https://img.shields.io/static/v1?label=Laravel&message=6.x&color=F05340&style=flat-square" alt="Laravel Version : 6.x"></a>
+  <a href="https://laravel.com" target="_blank"><img src="https://img.shields.io/static/v1?label=Laravel&message=7.x&color=F05340&style=flat-square" alt="Laravel Version : 7.x"></a>
   <img src="https://img.shields.io/static/v1?label=License&message=MIT&color=brightgreen&style=flat-square" alt="License">
-  <img src="https://github.com/Pharaonic/laravel-api-response/actions/workflows/build.yml/badge.svg?branch=6.x" alt="Build">
+  <img src="https://github.com/Pharaonic/laravel-api-response/actions/workflows/build.yml/badge.svg?branch=7.x" alt="Build">
   <br>
   <a href="https://packagist.org/packages/Pharaonic/laravel-api-response" target="_blank"><img src="https://img.shields.io/static/v1?label=Packagist&message=pharaonic/laravel-api-response&color=blue&logo=packagist&logoColor=white" alt="Source"></a>
   <a href="https://packagist.org/packages/pharaonic/laravel-api-response" target="_blank"><img src="https://poser.pugx.org/pharaonic/laravel-api-response/v" alt="Packagist Version"></a>
@@ -24,6 +24,12 @@ The service provider is registered automatically. Publish the configuration when
 
 ```bash
 php artisan vendor:publish --tag=api-response-config
+```
+
+Messages follow the application locale (English and Arabic included). Publish them to change a line or add a language:
+
+```bash
+php artisan vendor:publish --tag=api-response-translations
 ```
 
 ## Usage

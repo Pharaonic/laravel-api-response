@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here.
 
+## 7.0.0 - Unreleased
+
+### Added
+
+- Translated messages in the `api-response` namespace, English and Arabic, published with the `api-response-translations` tag. The renderer's messages (server error, not found, unauthenticated, forbidden, CSRF, the status text of an HTTP exception without a message) and Laravel's own English messages follow the application locale; any other exception message is sent as it is.
+
+### Behavior Changes from 6.1.x
+
+- The renderer's messages come from `api-response::messages` instead of the application's JSON translations: move a line such as `"Server Error."` in `lang/<locale>.json` to `resources/lang/vendor/api-response/<locale>/messages.php`.
+- The `LogicException` of `withSEO()` without pharaonic/laravel-seo no longer names a release.
+
+### Compatibility
+
+- Laravel 7.30+ on PHP 8.0.
+- The same API and output as 6.1.0, apart from the messages above.
+- `withSEO()` needs pharaonic/laravel-seo 7.1 or later.
+- The tests run on Pest.
+
 ## 6.1.0 - 2026-11-26
 
 A redesign around a smaller API. It breaks 6.0 code on purpose: 6.0.0 had been out for a day, and its surface was much larger than an API envelope needs.
