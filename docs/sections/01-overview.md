@@ -23,7 +23,7 @@ A renderer you register yourself maps API exceptions to the error envelope in En
 A small profile class renames the envelope fields or leaves the request ID out, chosen per response or by default.
 
 ### Notifications {icon="check-circle"}
-Attach success, info, warning and error messages for the client to show, in the order you add them.
+Attach success, info, warning and error messages for the client to show, in the order you add them, with an optional title, code, action, duration and position.
 
 ### Request IDs {icon="tag"}
 A middleware sends a request ID in a header and the body, and adds it to your log records.
