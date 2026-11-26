@@ -35,12 +35,15 @@ return Response::success(PostResource::collection(Post::query()->paginate(15)))
 @endverbatim
 
 @verbatim
-<code-snippet name="Exception rendering (app/Exceptions/Handler.php)" lang="php">
+<code-snippet name="Exception rendering" lang="php">
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 
-public function register(): void
-{
-    $this->renderable(new ExceptionRenderer);
-}
+// Laravel 11 and later, bootstrap/app.php
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(new ExceptionRenderer);
+})
+
+// Laravel 10, register() of app/Exceptions/Handler.php
+$this->renderable(new ExceptionRenderer);
 </code-snippet>
 @endverbatim

@@ -32,14 +32,19 @@ php artisan vendor:publish --tag=api-response-translations  # lang/vendor/api-re
 Register the optional pieces in the application:
 
 ```php
-// app/Exceptions/Handler.php
-public function register(): void
-{
-    $this->renderable(new \Pharaonic\Laravel\ApiResponse\ExceptionRenderer);
-}
+use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
+use Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId;
 
-// app/Http/Kernel.php, first in the 'api' group
-\Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId::class,
+// Laravel 11 and later, bootstrap/app.php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->api(prepend: [AssignRequestId::class]);
+})
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(new ExceptionRenderer);
+})
+
+// Laravel 10: $this->renderable(new ExceptionRenderer) in register() of app/Exceptions/Handler.php,
+// and AssignRequestId::class first in the 'api' group of app/Http/Kernel.php.
 ```
 
 ## Features
