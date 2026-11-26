@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## 13.2.0 - Unreleased
+
+### Added
+
+- `code(?string $code)` sets a stable identifier on an error, such as `auth.expired`, for the client to act on. It is refused on a success. A profile can rename the field.
+
+### Behavior Changes from 13.1.x
+
+- Every error sends `code` after `message`, `null` until `code()` sets it, so an error is `{success, message, code, errors, meta}`. The exception renderer sets no code, so its errors send `code: null`. A success is unchanged.
+
 ## 13.1.0 - 2026-11-26
 
 ### Added
