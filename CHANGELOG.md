@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## 11.0.0 - Unreleased
+
+### Compatibility
+
+- Laravel 11 on PHP 8.2, 8.3 and 8.4.
+- The same API and output as 10.0.0.
+- The exception renderer is registered with `$exceptions->render(new ExceptionRenderer)` in `withExceptions()`, and `AssignRequestId` with `$middleware->api(prepend: [...])` in `withMiddleware()`, both in `bootstrap/app.php`.
+- `withSEO()` needs pharaonic/laravel-seo 11.1 or later.
+- The tests run on Pest 3 and PHPUnit 11.
+
 ## 10.0.0 - Unreleased
 
 ### Added

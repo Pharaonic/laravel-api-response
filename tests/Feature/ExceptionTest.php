@@ -2,12 +2,16 @@
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Session\TokenMismatchException;
+use Orchestra\Testbench\Exceptions\Handler;
+use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\ConfiguredProfile;
 use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\OwnRenderException;
 use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\Post;
@@ -181,4 +185,15 @@ test('only an http exception is read through its previous exception', function (
     $this->throwing('api/wrapped', new RuntimeException('Failed.', 0, new ModelNotFoundException));
 
     $this->getJson('api/wrapped')->assertStatus(500)->assertJson(['message' => 'Server Error.']);
+});
+
+test('the renderer registers through withExceptions()', function () {
+    $this->requiresClass(Exceptions::class);
+
+    $handler = new Handler($this->app);
+    $this->app->instance(ExceptionHandler::class, $handler);
+    (new Exceptions($handler))->render(new ExceptionRenderer);
+    $this->throwing('api/conflict', new HttpException(409, 'Already exists.'));
+
+    $this->getJson('api/conflict')->assertStatus(409)->assertExactJson(['success' => false, 'message' => 'Already exists.', 'errors' => null, 'meta' => null]);
 });

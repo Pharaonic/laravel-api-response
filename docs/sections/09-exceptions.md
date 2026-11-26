@@ -4,15 +4,15 @@
 
 ### Registering the Renderer
 
-On Laravel 10, register it with `renderable()` in the `register()` method of your application's handler. Laravel renders anything it returns `null` for:
+On Laravel 11, register it in `withExceptions()` in `bootstrap/app.php`. Laravel renders anything it returns `null` for:
 
-```php title="app/Exceptions/Handler.php"
+```php title="bootstrap/app.php"
+use Illuminate\Foundation\Configuration\Exceptions;
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 
-public function register(): void
-{
-    $this->renderable(new ExceptionRenderer);
-}
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(new ExceptionRenderer);
+})
 ```
 
 ### Which Requests It Renders

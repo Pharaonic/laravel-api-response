@@ -8,7 +8,7 @@ use Orchestra\Testbench\Exceptions\Handler;
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 
 /**
- * An application handler wired the way the documentation shows for Laravel 8 to 10.
+ * An application handler that registers the renderer through renderable(), which withExceptions()->render() also calls.
  */
 class ApiExceptionHandler extends Handler
 {
