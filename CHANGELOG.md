@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## 9.0.0 - Unreleased
+
+### Compatibility
+
+- Laravel 9.33+ on PHP 8.0, 8.1 and 8.2. 9.33 is the first 9.x release that requires a Carbon release working on PHP 8.2.
+- The same API and output as 8.0.0. A validation error's message is its first error, as Laravel 9 sets it, instead of "The given data was invalid.".
+- Translations are published to `lang/vendor/api-response`.
+- `withSEO()` needs pharaonic/laravel-seo 9.1 or later.
+
 ## 8.0.0 - Unreleased
 
 ### Fixed
