@@ -46,7 +46,7 @@ class PostController
     {
         return Response::success(PostResource::collection(Post::query()->paginate(15)))
             ->message('Posts retrieved.')
-            ->notify('Posts loaded.', 'success');
+            ->notify('Posts loaded.', 'success', title: 'Posts');
     }
 
     public function show($id)
