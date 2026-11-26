@@ -29,6 +29,7 @@ test('a validation exception sends 422 with its errors', function () {
         ->assertExactJson([
             'success' => false,
             'message' => 'The email field must be a valid email address.',
+            'code' => null,
             'errors' => ['email' => ['The email field must be a valid email address.']],
             'meta' => null,
         ]);
@@ -53,14 +54,14 @@ test('laravel exceptions get their status', function () {
     }
 
     foreach ($cases as [$uri, , $status, $message]) {
-        $this->getJson($uri)->assertStatus($status)->assertExactJson(['success' => false, 'message' => $message, 'errors' => null, 'meta' => null]);
+        $this->getJson($uri)->assertStatus($status)->assertExactJson(['success' => false, 'message' => $message, 'code' => null, 'errors' => null, 'meta' => null]);
     }
 
-    $this->getJson('api/model')->assertStatus(404)->assertExactJson(['success' => false, 'message' => 'Not Found.', 'errors' => null, 'meta' => null]);
+    $this->getJson('api/model')->assertStatus(404)->assertExactJson(['success' => false, 'message' => 'Not Found.', 'code' => null, 'errors' => null, 'meta' => null]);
 });
 
 test('a missing route sends 404', function () {
-    $this->getJson('api/missing')->assertStatus(404)->assertJson(['success' => false, 'errors' => null, 'meta' => null]);
+    $this->getJson('api/missing')->assertStatus(404)->assertJson(['success' => false, 'code' => null, 'errors' => null, 'meta' => null]);
 });
 
 test('a model not found never names the model', function () {
@@ -89,7 +90,7 @@ test('throttling sends 429 with its headers', function () {
 
     $response = $this->getJson('api/limited');
 
-    $response->assertStatus(429)->assertExactJson(['success' => false, 'message' => 'Too Many Attempts.', 'errors' => null, 'meta' => null]);
+    $response->assertStatus(429)->assertExactJson(['success' => false, 'message' => 'Too Many Attempts.', 'code' => null, 'errors' => null, 'meta' => null]);
     $this->assertNotNull($response->headers->get('Retry-After'));
     $this->assertSame('0', $response->headers->get('X-RateLimit-Remaining'));
 });
@@ -109,7 +110,7 @@ test('an unexpected exception sends a bare 500 in production', function () {
     $response = $this->getJson('api/crash');
     $content = (string) $response->getContent();
 
-    $response->assertStatus(500)->assertExactJson(['success' => false, 'message' => 'Server Error.', 'errors' => null, 'meta' => null]);
+    $response->assertStatus(500)->assertExactJson(['success' => false, 'message' => 'Server Error.', 'code' => null, 'errors' => null, 'meta' => null]);
     $this->assertStringNotContainsString('SQLSTATE', $content);
     $this->assertStringNotContainsString('/var/www', $content);
     $this->assertStringNotContainsString('trace', $content);
@@ -136,7 +137,7 @@ test('exceptions are still reported once', function () {
 test('a path in exceptions paths is rendered without accept json', function () {
     $this->throwing('api/conflict', new HttpException(409, 'Already exists.'));
 
-    $this->get('api/conflict')->assertStatus(409)->assertExactJson(['success' => false, 'message' => 'Already exists.', 'errors' => null, 'meta' => null]);
+    $this->get('api/conflict')->assertStatus(409)->assertExactJson(['success' => false, 'message' => 'Already exists.', 'code' => null, 'errors' => null, 'meta' => null]);
 });
 
 test('a web page keeps laravel rendering', function () {
@@ -178,7 +179,7 @@ test('errors follow the default profile', function () {
     $this->app['config']->set('testing.profile_fields', ['message' => 'msg', 'errors' => 'problems']);
     $this->throwing('api/conflict', new HttpException(409, 'Already exists.'));
 
-    $this->getJson('api/conflict')->assertExactJson(['success' => false, 'msg' => 'Already exists.', 'problems' => null, 'meta' => null]);
+    $this->getJson('api/conflict')->assertExactJson(['success' => false, 'msg' => 'Already exists.', 'code' => null, 'problems' => null, 'meta' => null]);
 });
 
 test('only an http exception is read through its previous exception', function () {
@@ -195,5 +196,5 @@ test('the renderer registers through withExceptions()', function () {
     (new Exceptions($handler))->render(new ExceptionRenderer);
     $this->throwing('api/conflict', new HttpException(409, 'Already exists.'));
 
-    $this->getJson('api/conflict')->assertStatus(409)->assertExactJson(['success' => false, 'message' => 'Already exists.', 'errors' => null, 'meta' => null]);
+    $this->getJson('api/conflict')->assertStatus(409)->assertExactJson(['success' => false, 'message' => 'Already exists.', 'code' => null, 'errors' => null, 'meta' => null]);
 });

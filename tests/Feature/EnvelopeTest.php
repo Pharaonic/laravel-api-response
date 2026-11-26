@@ -17,7 +17,7 @@ test('an error sends success message and errors', function () {
     $response = $this->build(Response::error('Post not found.', 404));
 
     $this->assertSame(404, $response->getStatusCode());
-    $this->assertSame(['success' => false, 'message' => 'Post not found.', 'errors' => null, 'meta' => null], $this->body($response));
+    $this->assertSame(['success' => false, 'message' => 'Post not found.', 'code' => null, 'errors' => null, 'meta' => null], $this->body($response));
 });
 
 test('an error defaults to 400', function () {
@@ -223,9 +223,30 @@ test('an unknown notification position is refused', function () {
     Response::success()->notify('Nope.', position: 'middle');
 });
 
+test('an error sends its code', function () {
+    $body = $this->body($this->build(Response::error('Session expired.', 401)->code('auth.expired')));
+
+    $this->assertSame(['success' => false, 'message' => 'Session expired.', 'code' => 'auth.expired', 'errors' => null, 'meta' => null], $body);
+});
+
+test('a code can be cleared', function () {
+    $this->assertNull($this->body($this->build(Response::error('Nope.')->code('x')->code(null)))['code']);
+});
+
+test('a success cannot carry a code', function () {
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('A success cannot carry a code');
+
+    Response::success()->code('nope');
+});
+
+test('a success sends no code', function () {
+    $this->assertArrayNotHasKey('code', $this->body($this->build(Response::success())));
+});
+
 test('optional fields are left out when unused', function () {
     $this->assertSame(['success', 'message', 'data', 'meta'], array_keys($this->body($this->build(Response::success()))));
-    $this->assertSame(['success', 'message', 'errors', 'meta'], array_keys($this->body($this->build(Response::error('Nope.')))));
+    $this->assertSame(['success', 'message', 'code', 'errors', 'meta'], array_keys($this->body($this->build(Response::error('Nope.')))));
 });
 
 test('meta is null until something is added', function () {
