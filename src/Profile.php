@@ -14,7 +14,7 @@ class Profile
 {
     /**
      * The envelope fields this profile renames: canonical name => sent name.
-     * The canonical names are success, message, data, errors, meta,
+     * The canonical names are success, message, code, data, errors, meta,
      * notifications, seo and request_id; the others keep their own name.
      *
      * @return array<string, string>

@@ -23,7 +23,7 @@ test('a profile renames fields', function () {
 test('a profile starts from the package defaults', function () {
     $body = $this->body($this->build(Response::error('Nope.')->profile('mobile')->notify('Hi.')));
 
-    $this->assertSame(['success', 'msg', 'errors', 'meta', 'notifications'], array_keys($body));
+    $this->assertSame(['success', 'msg', 'code', 'errors', 'meta', 'notifications'], array_keys($body));
 });
 
 test('the default profile is configurable', function () {
@@ -72,11 +72,20 @@ test('an unknown default profile fails', function () {
     $this->build(Response::success());
 });
 
+test('a profile can rename the code', function () {
+    $this->app['config']->set('testing.profile_fields', ['code' => 'error_code']);
+
+    $body = $this->body($this->build(Response::error('Nope.')->code('x')->profile('configured')));
+
+    $this->assertSame(['success', 'message', 'error_code', 'errors', 'meta'], array_keys($body));
+    $this->assertSame('x', $body['error_code']);
+});
+
 test('a profile cannot rename an unknown field', function () {
-    $this->app['config']->set('testing.profile_fields', ['code' => 'code']);
+    $this->app['config']->set('testing.profile_fields', ['status' => 'status']);
 
     $this->expectException(InvalidArgumentException::class);
-    $this->expectExceptionMessage('unknown field [code]');
+    $this->expectExceptionMessage('unknown field [status]');
 
     $this->build(Response::success()->profile('configured'));
 });
