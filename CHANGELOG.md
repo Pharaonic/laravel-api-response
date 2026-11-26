@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 10.1.0 - Unreleased
+
+### Added
+
+- `notify()` takes an optional `title`, `code`, `action` (`['label' => ..., 'url' => ...]`), `duration` in milliseconds (`0` until dismissed) and `position` (`top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center` or `bottom-right`), each sent only when given, in the order `type`, `title`, `message`, `code`, `action`, `duration`, `position`. A notification without them is unchanged. A wrong action, a negative duration or an unknown position throws an `InvalidArgumentException`.
+
 ## 10.0.0 - 2026-11-26
 
 ### Added
