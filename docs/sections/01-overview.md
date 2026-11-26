@@ -16,7 +16,7 @@ success, message, data and meta for a success; success, message, errors and meta
 Length-aware, simple and cursor paginators become their items plus meta.pagination, with only the facts each paginator knows.
 
 ### JSON Exceptions {icon="alert-circle"}
-A renderer you register yourself maps API exceptions to the error envelope, keeps their headers and never leaks server errors.
+A renderer you register yourself maps API exceptions to the error envelope in English or Arabic, keeps their headers and never leaks server errors.
 
 ### Profiles {icon="switch"}
 A small profile class renames the envelope fields or leaves the request ID out, chosen per response or by default.

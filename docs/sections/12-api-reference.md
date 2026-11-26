@@ -29,7 +29,7 @@ All classes are in the `Pharaonic\Laravel\ApiResponse` namespace. Classes under 
 | `Profile` | The base profile: `fields()` returns the renamed fields (`[]`), `requestIdInBody()` whether the body carries the request ID (`true`). Extend it for your own profiles. |
 | `ExceptionRenderer` | Invokable: `(new ExceptionRenderer)($exception, $request)` returns the error response of an API request, or `null` to leave the exception to Laravel. |
 | `Http\Middleware\AssignRequestId` | Assigns the request ID, sends it in the configured header and adds it to log records. |
-| `ApiResponseServiceProvider` | Merges and publishes the configuration (`api-response-config`). Registered automatically. |
+| `ApiResponseServiceProvider` | Merges and publishes the configuration (`api-response-config`), loads and publishes the translations (`api-response-translations`). Registered automatically. |
 
 ### Exceptions Thrown
 
