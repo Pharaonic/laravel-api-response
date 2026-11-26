@@ -377,7 +377,7 @@ final class Response implements Responsable
     }
 
     /**
-     * Reads seo()->toArray() of pharaonic/laravel-seo 6.1 or later, without naming its classes.
+     * Reads seo()->toArray() of pharaonic/laravel-seo (N.1 or later on each line), without naming its classes.
      *
      * @return array<array-key, mixed>
      */
@@ -388,7 +388,7 @@ final class Response implements Responsable
         $export = is_object($manager) ? [$manager, 'toArray'] : null;
 
         if ($export === null || ! is_callable($export)) {
-            throw new LogicException('withSEO() needs pharaonic/laravel-seo 6.1 or later; install it with "composer require pharaonic/laravel-seo".');
+            throw new LogicException('withSEO() needs pharaonic/laravel-seo with seo()->toArray(); install it with "composer require pharaonic/laravel-seo".');
         }
 
         $tags = $export();
