@@ -4,19 +4,18 @@ The `AssignRequestId` middleware gives each request an ID, sends it back in the 
 
 ### Registering the Middleware
 
-Add it to the `api` group, or globally to give every response the header:
+Prepend it to the `api` group in `bootstrap/app.php`, or use `prepend()` to give every response the header:
 
-```php title="app/Http/Kernel.php"
-protected $middlewareGroups = [
-    'api' => [
-        \Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId::class,
-        \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
-        \Illuminate\Routing\Middleware\SubstituteBindings::class,
-    ],
-];
+```php title="bootstrap/app.php"
+use Illuminate\Foundation\Configuration\Middleware;
+use Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId;
+
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->api(prepend: [AssignRequestId::class]);
+})
 ```
 
-Put it first in the group, so responses its later middleware return, such as a 429 from throttling, get the header too.
+Put it first, so responses later middleware return, such as a 429 from throttling, get the header too.
 
 ### Header and Body
 

@@ -2,7 +2,7 @@
 
 ### My exceptions still render as HTML
 
-The renderer is not registered, or the request is not an API request. Register it with `renderable()` in your handler's `register()` ([Exception Rendering](#exceptions)), and send `Accept: application/json` or add the path to `exceptions.paths`.
+The renderer is not registered, or the request is not an API request. Register it in `withExceptions()` in `bootstrap/app.php` ([Exception Rendering](#exceptions)), and send `Accept: application/json` or add the path to `exceptions.paths`.
 
 ### A 500 shows Laravel's debug output instead of the envelope
 
@@ -26,4 +26,4 @@ The key is in `pagination.sensitive_query`, the response calls `withQueryString(
 
 ### LogicException: withSEO() needs pharaonic/laravel-seo
 
-Install it with `composer require pharaonic/laravel-seo` (10.1 or later), or remove the `withSEO()` call.
+Install it with `composer require pharaonic/laravel-seo` (11.1 or later), or remove the `withSEO()` call.
