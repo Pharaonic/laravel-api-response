@@ -25,7 +25,7 @@ items:
     text: A middleware sends a request ID in a header and the body, and adds it to your log records.
   - icon: check-circle
     title: Notifications
-    text: "`notify()` attaches success, info, warning and error messages for the client to show, in the order you add them."
+    text: "`notify()` attaches success, info, warning and error messages for the client to show, in the order you add them, with an optional title, code, action button, duration and position."
   - icon: share
     title: Shared Metadata
     text: "`meta()` on one response, or `Response::shareMeta()` in a middleware for every response of the request."
