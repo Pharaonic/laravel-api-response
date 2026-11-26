@@ -164,6 +164,65 @@ test('an unknown notification type is refused', function () {
     Response::success()->notify('Nope.', 'danger');
 });
 
+test('a notification sends its optional parts in a fixed order', function () {
+    $body = $this->body($this->build(Response::success()->notify(
+        'Your post is live.',
+        'success',
+        position: 'top-right',
+        duration: 5000,
+        action: ['url' => '/posts/1', 'label' => 'View'],
+        code: 'post.published',
+        title: 'Published'
+    )));
+
+    $this->assertSame([[
+        'type' => 'success',
+        'title' => 'Published',
+        'message' => 'Your post is live.',
+        'code' => 'post.published',
+        'action' => ['label' => 'View', 'url' => '/posts/1'],
+        'duration' => 5000,
+        'position' => 'top-right',
+    ]], $body['notifications']);
+});
+
+test('a notification leaves out the parts it was not given', function () {
+    $body = $this->body($this->build(Response::success()->notify('Saved.', title: 'Done')->notify('Kept.', duration: 0)));
+
+    $this->assertSame([
+        ['type' => 'info', 'title' => 'Done', 'message' => 'Saved.'],
+        ['type' => 'info', 'message' => 'Kept.', 'duration' => 0],
+    ], $body['notifications']);
+});
+
+test('an invalid notification action is refused', function (array $action) {
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('label and url');
+
+    Response::success()->notify('Nope.', action: $action);
+})->with([
+    'no url' => [['label' => 'View']],
+    'no label' => [['url' => '/posts']],
+    'empty label' => [['label' => '', 'url' => '/posts']],
+    'non-string url' => [['label' => 'View', 'url' => 1]],
+    'extra key' => [['label' => 'View', 'url' => '/posts', 'method' => 'POST']],
+    'list' => [['View', '/posts']],
+]);
+
+test('a negative notification duration is refused', function () {
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('-1 given');
+
+    Response::success()->notify('Nope.', duration: -1);
+});
+
+test('an unknown notification position is refused', function () {
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('[middle]');
+
+    Response::success()->notify('Nope.', position: 'middle');
+});
+
 test('optional fields are left out when unused', function () {
     $this->assertSame(['success', 'message', 'data', 'meta'], array_keys($this->body($this->build(Response::success()))));
     $this->assertSame(['success', 'message', 'errors', 'meta'], array_keys($this->body($this->build(Response::error('Nope.')))));

@@ -62,7 +62,7 @@ use Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId;
 | `->errors(?array)` | Error details, e.g. `['email' => ['...']]`. Throws on a success. |
 | `->meta(string\|array $key, mixed $value = null)` | Adds metadata; later values win. `pagination` is reserved. |
 | `Response::shareMeta(string\|array $key, mixed $value = null)` | Adds metadata to every response of the current request (call it in a middleware). Stored on the request. |
-| `->notify(string $message, string $type = 'info')` | Appends `{type, message}`; type is `success`, `info`, `warning` or `error`. |
+| `->notify(string $message, string $type = 'info', ?string $title = null, ?string $code = null, ?array $action = null, ?int $duration = null, ?string $position = null)` | Appends `{type, title, message, code, action, duration, position}`, each optional part only when given; type is `success`, `info`, `warning` or `error`; `action` is exactly `['label' => ..., 'url' => ...]`; `duration` is milliseconds (`0` until dismissed); `position` is `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center` or `bottom-right`. Pass the optional parts by name. |
 | `->profile(string $name)` | Uses a profile registered in `pharaonic.api-response.profiles`. |
 | `->withRequestId()` | Adds `request_id` even when the profile leaves it out. |
 | `->withQueryString(?array $only = null)` / `->withoutQueryString()` | Which query keys pagination links keep; the page or cursor parameter is always kept. |
