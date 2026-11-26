@@ -27,4 +27,4 @@ labels:
   copied: Copied!
 ---
 
-{package.name} gives every API response the same shape. Return `Response::success($posts)` from a controller and get your data, API resources and paginators in one predictable envelope, with stable error codes, structured notifications, request IDs and opt-in JSON exceptions. Responses you build without it are left alone.
+{package.name} gives every API response the same shape. Return `Response::success($posts)` or `Response::error('Post not found.', 404)` from a controller and get your data, API resources and paginators in one predictable envelope, with notifications, request IDs and opt-in JSON exceptions. Responses you build without it are left alone.

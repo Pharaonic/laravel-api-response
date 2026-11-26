@@ -9,4 +9,4 @@ buttons:
     icon: arrow-right
 ---
 
-Read the full documentation for installation, configuration, status helpers, pagination and query strings, API resources, profiles and content negotiation, notifications, SEO, request IDs, exception rendering and extending the builder.
+Read the full documentation for installation, configuration, success and error responses, pagination and query strings, API resources, notifications, profiles, exception rendering, request IDs and SEO tags.

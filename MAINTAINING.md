@@ -4,7 +4,7 @@ This file records package-specific maintainer facts that are safe to keep in the
 
 ## Purpose
 
-Consistent Laravel API responses: one request-local builder (`Response`) that resolves resources, paginators and Laravel's serializable types into a configurable envelope, with profiles and content negotiation, structured notifications, request IDs, optional SEO tags, and opt-in exception rendering.
+Consistent Laravel API responses: one `Response` builder for success and error envelopes, resolving resources and Laravel's three paginators, with profile classes, notifications, request IDs, optional SEO tags, and opt-in exception rendering. 6.1.0 replaced the larger 6.0 design on purpose; keep the surface this small.
 
 ## Supported Laravel lines
 
@@ -12,8 +12,8 @@ One branch per Laravel major, from `6.x` to the newest major, all carrying the s
 
 Per-line differences beyond constraints:
 
-- Cursor paginators exist from Laravel 8.41. `Pagination\CursorAdapter` names their contract by string, so it does nothing below; the cursor tests skip there.
-- The exception renderer is registered differently per line, and the docs of each line show its own way: `render()` of the application handler on 6.x–7.x, `$this->renderable()` on 8.x–10.x, `withExceptions()` in `bootstrap/app.php` from 11.x.
+- Cursor paginators exist from Laravel 8.41. `Support\Pagination` names their contract by string, so it does nothing below; the cursor test skips there.
+- The exception renderer is registered differently per line, and the docs of each line show its own way: `render()` of the application handler on 6.x–7.x, `$this->renderable()` on 8.x–10.x, `withExceptions()` in `bootstrap/app.php` from 11.x. From 8.x Laravel passes callbacks the prepared exception (`ModelNotFoundException` and `AuthorizationException` become HTTP exceptions), so the renderer handles both forms.
 
 ## Core library
 
@@ -21,21 +21,20 @@ None. Everything here is Laravel glue: responses, resources, paginators, excepti
 
 ## Public API invariants
 
-Configuration keys (`pharaonic.api-response.*`), publish tags, and registered Blade, Artisan, macro, and validation names are public API.
+Configuration keys (`pharaonic.api-response.*`) and the publish tags are public API.
 
-- Public: `Response` (static constructors, fluent methods, `macro()` and `flushMacros()`), `Profiles\Profile` and its overridable methods, `Contracts\PaginationAdapter`, `Contracts\ExceptionMapper`, `ExceptionRenderer`, `Http\Middleware\AssignRequestId`, `Http\Middleware\UseResponseProfile`. Everything under `Support` and the built-in adapters under `Pagination` are `@internal`. There is no facade, helper or middleware alias.
-- The canonical envelope fields (`success`, `message`, `code`, `data`, `errors`, `meta`, `notifications`, `seo`, `request_id`) and their order; `meta.pagination` and its groups (`type`, `pages`, `items` or `cursors`, `links`) and their fields per `type` (`length_aware`, `simple`, `cursor`); the built-in error codes (`VALIDATION_ERROR`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `PAGE_EXPIRED`, `SERVER_ERROR`, and the upper-snake status text of other HTTP exceptions).
-- Fields that were never set are left out; values the caller set (`null`, `[]`, `false`, `0`, `''`) are always sent. Metadata merges resource `with()`/`additional()`, then `meta()`, then the package's `pagination`.
-- A success keeps a status below 400 and an error one of 400 or more; 204 and 304 responses and HEAD requests have no body.
-- The request attributes `pharaonic.api-response.request_id` and `pharaonic.api-response.profile`, and `extra.request_id` on log records.
+- Public: `Response` (`success()`, `error()` and its fluent methods), `Profile` and its overridable `fields()` and `requestIdInBody()`, `ExceptionRenderer`, `Http\Middleware\AssignRequestId`. Everything under `Support` is `@internal`. There is no facade, helper, macro or middleware alias: no Pharaonic facade convention exists yet, and static factories give the same call site.
+- The envelope: `success`, `message`, `data` (success) or `errors` (error), and `meta` (`null` while empty), always sent; then `notifications`, `seo`, `request_id` only when present, in that order. Metadata merges `shareMeta()`, then resource `with()`/`additional()`, then `meta()`, then the package's `pagination`. `meta.pagination` and its keys per `type` (`length_aware`, `simple`, `cursor`).
+- A success keeps a 2xx status and an error a 4xx or 5xx one; 204 and 205 have no body.
+- Shared metadata lives in the request attribute `pharaonic.api-response.meta`, never in static state.
+- The request attribute `pharaonic.api-response.request_id`, and `extra.request_id` on log records.
 - No SEO field without `withSEO()` on that response; the integration reads only `seo()->toArray()` through the `pharaonic-seo` binding and names no laravel-seo class.
 
 ## Package-specific constraints
 
-- No request state outside the request: builders are plain objects, the request ID and route profile live in request attributes, and configuration is read at finalization. The log processor reads the current request when a record is written and is pushed once per Monolog instance (found among its processors), so a long-running worker never logs another request's ID.
-- Finalization reads the builder's state and never changes it, so a builder can be finalized twice.
-- JSON is encoded by the package with `JSON_THROW_ON_ERROR` and given to `JsonResponse::setJson()`: Laravel's `JsonResponse` constructor takes encoding options where Symfony's `fromJsonString()` passes a JSON flag (before Laravel 9), and `setEncodingOptions()` re-encodes the decoded data.
-- `Str::orderedUuid()` needs `moontoast/math` with ramsey/uuid 3 (Laravel 6–7), so the only built-in request ID generator is `uuid`; other generators are invokable classes.
+- No request state outside the request: builders are plain objects, the request ID lives in a request attribute, and configuration is read when a response is built. The log processor reads the current request when a record is written and is pushed once per Monolog instance (found among its processors), so a long-running worker never logs another request's ID.
+- Building reads the builder's state and never changes it, so a builder can be built twice.
+- The request ID is always `Str::uuid()`: `Str::orderedUuid()` needs `moontoast/math` with ramsey/uuid 3 (Laravel 6–7).
 - `pharaonic/laravel-seo` is in `suggest` only; the CI `integrations` job installs it and runs the tests.
 
 ## Branch notes

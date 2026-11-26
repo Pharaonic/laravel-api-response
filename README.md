@@ -11,7 +11,7 @@
   <a href="https://packagist.org/packages/pharaonic/laravel-api-response" target="_blank"><img src="https://poser.pugx.org/pharaonic/laravel-api-response/downloads" alt="Packagist Downloads"></a>
 </p>
 
-<h3 align="center">One consistent envelope for Laravel API responses: data, errors, resources and every paginator, with profiles, notifications, request IDs and opt-in exception rendering.</h3>
+<h3 align="center">One consistent envelope for Laravel API responses: success and error responses, resources and every paginator, with profiles, notifications, request IDs and opt-in exception rendering.</h3>
 <br>
 
 ## Installation
@@ -26,12 +26,6 @@ The service provider is registered automatically. Publish the configuration when
 php artisan vendor:publish --tag=api-response-config
 ```
 
-Messages follow the application locale (English and Arabic included). Publish them to change a line or add a language:
-
-```bash
-php artisan vendor:publish --tag=api-response-translations
-```
-
 ## Usage
 
 ```php
@@ -44,13 +38,13 @@ class PostController
     public function index()
     {
         return Response::success(PostResource::collection(Post::query()->paginate(15)))
-            ->message('Posts retrieved successfully.')
+            ->message('Posts retrieved.')
             ->notify('Posts loaded.', 'success');
     }
 
-    public function store()
+    public function show($id)
     {
-        return Response::error('Insufficient balance.', 422)->code('INSUFFICIENT_BALANCE');
+        return Response::error('Post not found.', 404);
     }
 }
 ```

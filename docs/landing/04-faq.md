@@ -20,7 +20,7 @@ The latest release requires {package.requiresText}.
 
 ## Does it change responses I already return?
 
-No. Only responses you build with this package's `Response` class are shaped. Exception rendering is off until you register `ExceptionRenderer` with your exception handler, and even then it only handles API requests.
+No. Only responses you build with `Response` are shaped. Exception rendering is off until you register `ExceptionRenderer` with your exception handler, and even then it only handles API requests.
 
 ## Does it need pharaonic/laravel-seo?
 
@@ -28,7 +28,7 @@ No. The SEO integration is optional, and a response carries SEO tags only when i
 
 ## Can I change the shape of the JSON?
 
-Yes. Rename any envelope field in the configuration, or register a profile that reshapes pagination and notifications, adds headers, or sends the data without an envelope.
+Yes. A profile class renames any envelope field and decides whether the body carries the request ID; choose it with `profile()` or make it the default.
 
 ## Is {package.name} free to use?
 

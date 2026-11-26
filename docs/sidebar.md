@@ -4,14 +4,10 @@
   - [Configuration](#configuration)
   - [Basic Usage](#basic-usage)
 - Responses
-  - [Status Helpers & Error Codes](#status-helpers)
-  - [Pagination](#pagination)
-  - [Query Strings](#query-strings)
+  - [Pagination & Query Strings](#pagination)
   - [API Resources](#api-resources)
   - [Notifications](#notifications)
-- Shaping
-  - [Profiles & Negotiation](#profiles)
-  - [Headers, Macros & Transforms](#extending)
+  - [Profiles](#profiles)
 - Integrations
   - [Exception Rendering](#exceptions)
   - [Request IDs](#request-ids)

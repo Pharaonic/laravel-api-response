@@ -21,13 +21,9 @@ Publishing is optional; the defaults work as they are. Publish the file to `conf
 php artisan vendor:publish --tag=api-response-config
 ```
 
-### Publish Translations
+### Optional: Exception Rendering and Request IDs
 
-The package's messages ship in English and Arabic and follow the application locale. Publish them to `resources/lang/vendor/api-response` to change a line or add a language:
-
-```bash title="Terminal" no-line-numbers
-php artisan vendor:publish --tag=api-response-translations
-```
+Two pieces are off until you register them in your application: the [exception renderer](#exceptions) in `app/Exceptions/Handler.php`, and the [`AssignRequestId` middleware](#request-ids) in `app/Http/Kernel.php`.
 
 ### Optional: SEO Tags
 
