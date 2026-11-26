@@ -17,13 +17,8 @@ test('a length aware paginator sends items and full metadata', function () {
     $this->assertArrayNotHasKey('secret', $body['data'][0]);
     $this->assertSame([
         'type' => 'length_aware',
-        'current_page' => 2,
-        'last_page' => 3,
-        'per_page' => 2,
-        'total' => 5,
-        'from' => 3,
-        'to' => 4,
-        'has_more_pages' => true,
+        'pages' => ['current' => 2, 'last' => 3, 'per_page' => 2, 'has_more' => true],
+        'items' => ['total' => 5, 'from' => 3, 'to' => 4],
         'links' => [
             'first' => 'http://localhost/api/posts?page=1',
             'last' => 'http://localhost/api/posts?page=3',
@@ -40,11 +35,8 @@ test('a simple paginator never invents a total', function () {
     $this->assertSame([1, 2], array_column($body['data'], 'id'));
     $this->assertSame([
         'type' => 'simple',
-        'current_page' => 1,
-        'per_page' => 2,
-        'from' => 1,
-        'to' => 2,
-        'has_more_pages' => true,
+        'pages' => ['current' => 1, 'per_page' => 2, 'has_more' => true],
+        'items' => ['from' => 1, 'to' => 2],
         'links' => [
             'prev' => null,
             'next' => 'http://localhost/api/posts?page=2',
@@ -57,9 +49,9 @@ test('an empty page is sent as an empty list', function () {
     $body = $this->body($this->build(Response::success(Post::query()->paginate(2)), '/api/posts?page=9'));
 
     $this->assertSame([], $body['data']);
-    $this->assertNull($body['meta']['pagination']['from']);
+    $this->assertNull($body['meta']['pagination']['items']['from']);
     $this->assertNull($body['meta']['pagination']['links']['next']);
-    $this->assertFalse($body['meta']['pagination']['has_more_pages']);
+    $this->assertFalse($body['meta']['pagination']['pages']['has_more']);
 });
 
 test('a cursor paginator sends cursors only', function () {
@@ -70,15 +62,20 @@ test('a cursor paginator sends cursors only', function () {
     $pagination = $first['meta']['pagination'];
 
     $this->assertSame([1, 2], array_column($first['data'], 'id'));
-    $this->assertSame(['type', 'per_page', 'next_cursor', 'prev_cursor', 'has_more_pages', 'links'], array_keys($pagination));
-    $this->assertNull($pagination['prev_cursor']);
-    $this->assertIsString($pagination['next_cursor']);
+    $this->assertSame(['type', 'pages', 'cursors', 'links'], array_keys($pagination));
+    $this->assertSame(['per_page' => 2, 'has_more' => true], $pagination['pages']);
+    $this->assertNull($pagination['cursors']['current']);
+    $this->assertNull($pagination['cursors']['prev']);
+    $this->assertIsString($pagination['cursors']['next']);
+    $this->assertStringContainsString('cursor='.$pagination['cursors']['next'], $pagination['links']['next']);
 
-    $this->visit('/api/posts?cursor='.$pagination['next_cursor']);
-    $second = $this->body($this->build(Response::success(Post::query()->orderBy('id')->cursorPaginate(2)), '/api/posts?cursor='.$pagination['next_cursor']));
+    $next = $pagination['cursors']['next'];
+    $this->visit('/api/posts?cursor='.$next);
+    $second = $this->body($this->build(Response::success(Post::query()->orderBy('id')->cursorPaginate(2)), '/api/posts?cursor='.$next));
 
     $this->assertSame([3, 4], array_column($second['data'], 'id'));
-    $this->assertIsString($second['meta']['pagination']['prev_cursor']);
+    $this->assertSame($next, $second['meta']['pagination']['cursors']['current']);
+    $this->assertIsString($second['meta']['pagination']['cursors']['prev']);
 });
 
 test('the query string is kept by default except sensitive keys', function () {

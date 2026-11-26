@@ -19,13 +19,13 @@ breadcrumbs:
 card:
   topic: api
   icon: code-brackets
-  tags: api response json envelope pagination resources exceptions notifications request-id profiles
+  tags: api response json envelope pagination resources exceptions notifications request-id profiles ai-ready laravel-boost
   description: One consistent JSON envelope for Laravel API responses. Success and error responses, API resources and every paginator, with simple profiles, notifications, request IDs and opt-in exception rendering.
 
 seo:
   title: "{package.fullName} - Consistent JSON API Responses"
   description: "{package.name} is a Laravel package for consistent JSON API responses: one envelope for data, errors, resources and paginators, with profiles, notifications, request IDs and opt-in exception rendering. {package.downloadsShort}+ downloads, {package.license} licensed."
-  keywords: laravel api response, laravel json response, api envelope, laravel pagination json, api resources, laravel exception json, request id, api notifications
+  keywords: laravel api response, laravel json response, api envelope, laravel pagination json, api resources, laravel exception json, request id, api notifications, laravel boost, ai ready
   author: Pharaonic
   images:
     - "{package.cover}"

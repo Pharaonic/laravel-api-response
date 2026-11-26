@@ -12,9 +12,7 @@ use Pharaonic\Laravel\ApiResponse\Profile;
  */
 class ConfiguredProfile extends Profile
 {
-    public function __construct(private Repository $config)
-    {
-    }
+    public function __construct(private Repository $config) {}
 
     public function fields(): array
     {

@@ -45,13 +45,17 @@ final class Pagination
 
             return ['items' => $paginator->items(), 'meta' => [
                 'type' => 'length_aware',
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-                'has_more_pages' => $paginator->hasMorePages(),
+                'pages' => [
+                    'current' => $paginator->currentPage(),
+                    'last' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'has_more' => $paginator->hasMorePages(),
+                ],
+                'items' => [
+                    'total' => $paginator->total(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
+                ],
                 'links' => [
                     'first' => $this->url($paginator->url(1), $page),
                     'last' => $this->url($paginator->url(max(1, $paginator->lastPage())), $page),
@@ -66,11 +70,15 @@ final class Pagination
 
             return ['items' => $paginator->items(), 'meta' => [
                 'type' => 'simple',
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-                'has_more_pages' => $paginator->hasMorePages(),
+                'pages' => [
+                    'current' => $paginator->currentPage(),
+                    'per_page' => $paginator->perPage(),
+                    'has_more' => $paginator->hasMorePages(),
+                ],
+                'items' => [
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
+                ],
                 'links' => [
                     'prev' => $this->url($paginator->previousPageUrl(), $page),
                     'next' => $this->url($paginator->nextPageUrl(), $page),
@@ -85,10 +93,15 @@ final class Pagination
 
             return ['items' => $this->call($paginator, 'items'), 'meta' => [
                 'type' => 'cursor',
-                'per_page' => $this->call($paginator, 'perPage'),
-                'next_cursor' => $this->encode($this->call($paginator, 'nextCursor')),
-                'prev_cursor' => $this->encode($this->call($paginator, 'previousCursor')),
-                'has_more_pages' => (bool) $this->call($paginator, 'hasMorePages'),
+                'pages' => [
+                    'per_page' => $this->call($paginator, 'perPage'),
+                    'has_more' => (bool) $this->call($paginator, 'hasMorePages'),
+                ],
+                'cursors' => [
+                    'current' => $this->encode($this->call($paginator, 'cursor')),
+                    'prev' => $this->encode($this->call($paginator, 'previousCursor')),
+                    'next' => $this->encode($this->call($paginator, 'nextCursor')),
+                ],
                 'links' => [
                     'prev' => $this->url(is_string($prev) ? $prev : null, $cursor),
                     'next' => $this->url(is_string($next) ? $next : null, $cursor),

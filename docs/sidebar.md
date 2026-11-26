@@ -12,6 +12,7 @@
   - [Exception Rendering](#exceptions)
   - [Request IDs](#request-ids)
   - [SEO Tags](#seo)
+  - [AI Ready](#ai-ready)
 - API Reference
   - [Methods & Classes](#api-reference)
 - Examples

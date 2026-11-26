@@ -26,4 +26,4 @@ The key is in `pagination.sensitive_query`, the response calls `withQueryString(
 
 ### LogicException: withSEO() needs pharaonic/laravel-seo
 
-Install it with `composer require pharaonic/laravel-seo` (9.1 or later), or remove the `withSEO()` call.
+Install it with `composer require pharaonic/laravel-seo` (10.1 or later), or remove the `withSEO()` call.

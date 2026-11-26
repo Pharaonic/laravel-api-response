@@ -19,9 +19,7 @@ final class RequestId
 {
     public const ATTRIBUTE = 'pharaonic.api-response.request_id';
 
-    public function __construct(private Container $container)
-    {
-    }
+    public function __construct(private Container $container) {}
 
     public static function of(Request $request): ?string
     {

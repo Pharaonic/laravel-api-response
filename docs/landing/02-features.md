@@ -23,4 +23,13 @@ items:
   - icon: tag
     title: Request IDs
     text: A middleware sends a request ID in a header and the body, and adds it to your log records.
+  - icon: check-circle
+    title: Notifications
+    text: "`notify()` attaches success, info, warning and error messages for the client to show, in the order you add them."
+  - icon: share
+    title: Shared Metadata
+    text: "`meta()` on one response, or `Response::shareMeta()` in a middleware for every response of the request."
+  - icon: bot
+    title: AI Ready
+    text: "Ships a Laravel Boost guideline and an `api-response-development` skill, so `php artisan boost:install` teaches Claude Code, Cursor, Codex or Copilot the whole API."
 ---

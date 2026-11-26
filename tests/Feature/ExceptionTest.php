@@ -24,8 +24,8 @@ test('a validation exception sends 422 with its errors', function () {
         ->assertStatus(422)
         ->assertExactJson([
             'success' => false,
-            'message' => 'The email must be a valid email address.',
-            'errors' => ['email' => ['The email must be a valid email address.']],
+            'message' => 'The email field must be a valid email address.',
+            'errors' => ['email' => ['The email field must be a valid email address.']],
             'meta' => null,
         ]);
 });
