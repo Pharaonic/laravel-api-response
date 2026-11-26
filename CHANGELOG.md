@@ -11,7 +11,7 @@ All notable changes to this project are documented here.
 - `withSEO()` needs pharaonic/laravel-seo 12.1 or later.
 - The tests run on Pest 3 or 4 and PHPUnit 11 or 12.
 
-## 11.0.0 - Unreleased
+## 11.0.0 - 2026-11-26
 
 ### Compatibility
 
@@ -21,7 +21,7 @@ All notable changes to this project are documented here.
 - `withSEO()` needs pharaonic/laravel-seo 11.1 or later.
 - The tests run on Pest 3 and PHPUnit 11.
 
-## 10.0.0 - Unreleased
+## 10.0.0 - 2026-11-26
 
 ### Added
 
@@ -37,7 +37,7 @@ All notable changes to this project are documented here.
 - The same API as 9.0.0, apart from the pagination shape. A validation error's message follows Laravel 10's wording ("The email field must be a valid email address.").
 - `withSEO()` needs pharaonic/laravel-seo 10.1 or later.
 
-## 9.0.0 - Unreleased
+## 9.0.0 - 2026-11-26
 
 ### Compatibility
 
@@ -46,7 +46,7 @@ All notable changes to this project are documented here.
 - Translations are published to `lang/vendor/api-response`.
 - `withSEO()` needs pharaonic/laravel-seo 9.1 or later.
 
-## 8.0.0 - Unreleased
+## 8.0.0 - 2026-11-26
 
 ### Fixed
 
@@ -61,7 +61,7 @@ All notable changes to this project are documented here.
 - `withSEO()` needs pharaonic/laravel-seo 8.1 or later.
 - Cursor paginators are covered by the tests.
 
-## 7.0.0 - Unreleased
+## 7.0.0 - 2026-11-26
 
 ### Added
 
