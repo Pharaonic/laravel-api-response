@@ -10,8 +10,8 @@ Add it to the `api` group, or globally to give every response the header:
 protected $middlewareGroups = [
     'api' => [
         \Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId::class,
-        'throttle:60,1',
-        'bindings',
+        'throttle:api',
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
     ],
 ];
 ```
