@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here.
 
+## 10.0.0 - Unreleased
+
+### Added
+
+- Laravel Boost resources: a guideline (`resources/boost/guidelines/core.blade.php`) and the `api-response-development` skill, so `php artisan boost:install` teaches the application's coding agent the package.
+
+### Behavior Changes from 9.x
+
+- `meta.pagination` is grouped: `type`, `pages` (`current`, `last`, `per_page`, `has_more`), `items` (`total`, `from`, `to`) or `cursors` (`current`, `prev`, `next`), and `links`. `current_page` becomes `pages.current`, `last_page` `pages.last`, `per_page` `pages.per_page`, `has_more_pages` `pages.has_more`, `total`, `from` and `to` move under `items`, and `next_cursor` and `prev_cursor` become `cursors.next` and `cursors.prev`. A cursor paginator also sends `cursors.current`.
+
+### Compatibility
+
+- Laravel 10 on PHP 8.1, 8.2 and 8.3.
+- The same API as 9.0.0, apart from the pagination shape. A validation error's message follows Laravel 10's wording ("The email field must be a valid email address.").
+- `withSEO()` needs pharaonic/laravel-seo 10.1 or later.
+
 ## 9.0.0 - Unreleased
 
 ### Compatibility
