@@ -4,39 +4,39 @@ declare(strict_types=1);
 
 namespace Pharaonic\Laravel\ApiResponse;
 
-use Closure;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Traits\Macroable;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Response as IlluminateResponse;
 use InvalidArgumentException;
-use Pharaonic\Laravel\ApiResponse\Support\Finalizer;
-use Pharaonic\Laravel\ApiResponse\Support\Headers;
-use Pharaonic\Laravel\ApiResponse\Support\Messages;
+use JsonSerializable;
+use LogicException;
+use Pharaonic\Laravel\ApiResponse\Support\Pagination;
+use Pharaonic\Laravel\ApiResponse\Support\Profiles;
+use Pharaonic\Laravel\ApiResponse\Support\RequestId;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * A request-local API response. The static constructors start one, the fluent
- * methods collect its state in any order, and Laravel (or response()) turns it
- * into an HTTP response. Nothing is resolved before then.
+ * An API response. success() and error() start one, the fluent methods set
+ * its parts in any order, and Laravel (or response()) builds the HTTP response.
+ * Nothing is resolved before then.
  */
-class Response implements Responsable
+final class Response implements Responsable
 {
-    use Macroable {
-        macro as private registerMacro;
-    }
+    private const NOTIFICATION_TYPES = ['success', 'info', 'warning', 'error'];
 
-    private bool $error;
-
-    private int $status;
-
-    private bool $hasData = false;
-
-    private mixed $data = null;
+    /**
+     * The request attribute that holds the metadata shared with shareMeta().
+     */
+    private const SHARED_META = 'pharaonic.api-response.meta';
 
     private ?string $message = null;
-
-    private ?string $code = null;
 
     /** @var array<array-key, mixed>|null */
     private ?array $errors = null;
@@ -44,153 +44,60 @@ class Response implements Responsable
     /** @var array<array-key, mixed> */
     private array $meta = [];
 
-    /** @var list<array{type: string, message: string, title: ?string, duration: ?int, data: array<array-key, mixed>}> */
+    /** @var list<array{type: string, message: string}> */
     private array $notifications = [];
-
-    /** @var array<string, string> */
-    private array $headers = [];
 
     private ?string $profile = null;
 
     private bool $seo = false;
 
-    private ?bool $requestId = null;
+    private bool $requestId = false;
 
-    /** @var list<string>|bool|null null: the configured default, true: every allowed key, false: none, list: only these keys */
+    /** @var list<string>|bool|null null: the configured default, true: every key, false: none, list: only these keys */
     private array|bool|null $queryString = null;
 
-    private bool $pagination = true;
-
-    /** @var list<callable(mixed): mixed> */
-    private array $transformers = [];
-
-    final private function __construct(bool $error, int $status)
+    private function __construct(private bool $error, private int $status, private mixed $data)
     {
-        $this->error = $error;
-        $this->status($status);
     }
 
     /**
-     * A successful response (200). Called without an argument it sends no data field.
+     * A success (200) carrying the data: a value, an array, a model, a resource or a paginator.
      */
-    public static function success(mixed $data = null): static
+    public static function success(mixed $data = null): self
     {
-        return self::make(false, 200, func_num_args() > 0, $data);
+        return new self(false, 200, $data);
     }
 
     /**
-     * A created response (201).
+     * An error with a status of 400 to 599.
      */
-    public static function created(mixed $data = null): static
+    public static function error(string $message, int $status = 400): self
     {
-        return self::make(false, 201, func_num_args() > 0, $data);
+        return (new self(true, 400, null))->message($message)->status($status);
     }
 
     /**
-     * An accepted response (202).
-     */
-    public static function accepted(mixed $data = null): static
-    {
-        return self::make(false, 202, func_num_args() > 0, $data);
-    }
-
-    /**
-     * A bodyless 204 response: only its headers are sent.
-     */
-    public static function noContent(): static
-    {
-        return self::make(false, 204, false, null);
-    }
-
-    /**
-     * An error response. The status must be 400 or more.
-     */
-    public static function error(string $message, int $status = 400): static
-    {
-        return self::make(true, $status, false, null)->message($message);
-    }
-
-    /**
-     * A 401 response. Without a message it sends api-response::messages.unauthenticated.
-     */
-    public static function unauthorized(?string $message = null): static
-    {
-        return static::error($message ?? Messages::get('unauthenticated', 'Unauthenticated.'), 401)->code('UNAUTHENTICATED');
-    }
-
-    /**
-     * A 403 response. Without a message it sends api-response::messages.forbidden.
-     */
-    public static function forbidden(?string $message = null): static
-    {
-        return static::error($message ?? Messages::get('forbidden', 'This action is unauthorized.'), 403)->code('FORBIDDEN');
-    }
-
-    /**
-     * A 404 response. Without a message it sends api-response::messages.not_found.
-     */
-    public static function notFound(?string $message = null): static
-    {
-        return static::error($message ?? Messages::get('not_found', 'Not Found.'), 404)->code('NOT_FOUND');
-    }
-
-    /**
-     * A 422 response with the errors of each field. Without a message it sends api-response::messages.validation.
+     * Share metadata with every response of the current request, such as from a
+     * middleware. It lives on the request, so it never reaches another request.
+     * A resource's metadata and a response's own meta() replace shared keys.
      *
-     * @param  array<array-key, mixed>  $errors
+     * @param  string|array<array-key, mixed>  $key
      */
-    public static function validationError(array $errors, ?string $message = null): static
+    public static function shareMeta(string|array $key, mixed $value = null): void
     {
-        return static::error($message ?? Messages::get('validation', 'The given data was invalid.'), 422)->code('VALIDATION_ERROR')->errors($errors);
-    }
+        $request = Container::getInstance()->make('request');
 
-    private static function make(bool $error, int $status, bool $hasData, mixed $data): static
-    {
-        $response = new static($error, $status);
-
-        if ($hasData) {
-            $response->data($data);
+        if (! $request instanceof Request) {
+            throw new LogicException('shareMeta() needs the current request.');
         }
 
-        return $response;
+        $values = self::metaValues($key, $value);
+        $shared = $request->attributes->get(self::SHARED_META);
+
+        $request->attributes->set(self::SHARED_META, array_replace(is_array($shared) ? $shared : [], $values));
     }
 
-    /**
-     * Register a macro. A name the class already defines is refused, because the method would always win.
-     */
-    public static function macro(string $name, object|callable $macro): void
-    {
-        if (method_exists(static::class, $name)) {
-            throw new InvalidArgumentException("Response already defines [{$name}]; choose another macro name.");
-        }
-
-        self::registerMacro($name, $macro);
-    }
-
-    /**
-     * Forget every registered macro.
-     */
-    public static function flushMacros(): void
-    {
-        static::$macros = [];
-    }
-
-    /**
-     * Set the payload of a success. An error carries its details in errors() and meta() instead.
-     */
-    public function data(mixed $data): static
-    {
-        if ($this->error) {
-            throw new InvalidArgumentException('An error response cannot carry data; use errors() or meta().');
-        }
-
-        $this->hasData = true;
-        $this->data = $data;
-
-        return $this;
-    }
-
-    public function message(?string $message): static
+    public function message(?string $message): self
     {
         $this->message = $message;
 
@@ -198,20 +105,16 @@ class Response implements Responsable
     }
 
     /**
-     * Set the HTTP status. A success keeps a status below 400 and an error one of 400 or more.
+     * A success keeps a 2xx status and an error a 4xx or 5xx one. 204 and 205 have no body.
      */
-    public function status(int $status): static
+    public function status(int $status): self
     {
-        if ($status < 200 || $status > 599) {
-            throw new InvalidArgumentException("The HTTP status must be between 200 and 599, {$status} given.");
+        if (! $this->error && ($status < 200 || $status > 299)) {
+            throw new InvalidArgumentException("A success needs a 2xx status, {$status} given; use Response::error().");
         }
 
-        if ($this->error && $status < 400) {
-            throw new InvalidArgumentException("An error response needs a status of 400 or more, {$status} given.");
-        }
-
-        if (! $this->error && $status >= 400) {
-            throw new InvalidArgumentException("A success response needs a status below 400, {$status} given; use Response::error().");
+        if ($this->error && ($status < 400 || $status > 599)) {
+            throw new InvalidArgumentException("An error needs a 4xx or 5xx status, {$status} given.");
         }
 
         $this->status = $status;
@@ -220,28 +123,14 @@ class Response implements Responsable
     }
 
     /**
-     * Set the application error code: a stable, machine-readable identifier such as INSUFFICIENT_BALANCE.
-     */
-    public function code(?string $code): static
-    {
-        if ($code !== null && ! preg_match('/^[A-Za-z0-9_.:\-]+$/', $code)) {
-            throw new InvalidArgumentException("The response code [{$code}] may only contain letters, digits, '_', '.', ':' and '-'.");
-        }
-
-        $this->code = $code;
-
-        return $this;
-    }
-
-    /**
-     * Set the errors of an error response, such as the messages of each field.
+     * The errors of an error response, such as the messages of each field.
      *
      * @param  array<array-key, mixed>|null  $errors
      */
-    public function errors(?array $errors): static
+    public function errors(?array $errors): self
     {
-        if ($errors !== null && ! $this->error) {
-            throw new InvalidArgumentException('A success response cannot carry errors; use Response::error().');
+        if (! $this->error) {
+            throw new InvalidArgumentException('A success cannot carry errors; use Response::error().');
         }
 
         $this->errors = $errors;
@@ -250,51 +139,51 @@ class Response implements Responsable
     }
 
     /**
-     * Add metadata: one key and value, or an array of them. Later values replace earlier ones.
+     * Add metadata: one key and value, or an array of them. Later values replace
+     * earlier ones, and replace what a resource's with() or additional() sends.
      *
      * @param  string|array<array-key, mixed>  $key
      */
-    public function meta(string|array $key, mixed $value = null): static
+    public function meta(string|array $key, mixed $value = null): self
+    {
+        $this->meta = array_replace($this->meta, self::metaValues($key, $value));
+
+        return $this;
+    }
+
+    /**
+     * @param  string|array<array-key, mixed>  $key
+     * @return array<array-key, mixed>
+     */
+    private static function metaValues(string|array $key, mixed $value): array
     {
         $values = is_array($key) ? $key : [$key => $value];
 
-        foreach ($values as $name => $item) {
-            if ($name === 'pagination') {
-                throw new InvalidArgumentException('The meta key [pagination] belongs to the package.');
-            }
-
-            $this->meta[$name] = $item;
+        if (array_key_exists('pagination', $values)) {
+            throw new InvalidArgumentException('The meta key [pagination] belongs to the package.');
         }
 
-        return $this;
+        return $values;
     }
 
     /**
-     * Add a notification for the client to display. Notifications keep the order they were added in.
-     *
-     * @param  array<array-key, mixed>  $data
+     * Add a notification for the client to show. Notifications keep the order they were added in.
      */
-    public function notify(string $message, ?string $type = null, ?string $title = null, ?int $duration = null, array $data = []): static
+    public function notify(string $message, string $type = 'info'): self
     {
-        if ($duration !== null && $duration < 0) {
-            throw new InvalidArgumentException('A notification duration cannot be negative.');
+        if (! in_array($type, self::NOTIFICATION_TYPES, true)) {
+            throw new InvalidArgumentException("The notification type [{$type}] must be one of: ".implode(', ', self::NOTIFICATION_TYPES).'.');
         }
 
-        $this->notifications[] = [
-            'type' => $type ?? '',
-            'message' => $message,
-            'title' => $title,
-            'duration' => $duration,
-            'data' => $data,
-        ];
+        $this->notifications[] = ['type' => $type, 'message' => $message];
 
         return $this;
     }
 
     /**
-     * Use a registered profile for this response, whatever the route or the Accept header say.
+     * Shape this response with a profile registered in pharaonic.api-response.profiles instead of the default one.
      */
-    public function profile(string $name): static
+    public function profile(string $name): self
     {
         $this->profile = $name;
 
@@ -302,35 +191,32 @@ class Response implements Responsable
     }
 
     /**
-     * Add the SEO tags of pharaonic/laravel-seo. A response never carries them without this call.
+     * Add the page's tags from pharaonic/laravel-seo. A response never carries them without this call.
      */
-    public function withSEO(): static
+    public function withSEO(): self
     {
         $this->seo = true;
 
         return $this;
     }
 
-    public function withRequestId(): static
+    /**
+     * Add the request ID to the body even when the profile leaves it out.
+     */
+    public function withRequestId(): self
     {
         $this->requestId = true;
 
         return $this;
     }
 
-    public function withoutRequestId(): static
-    {
-        $this->requestId = false;
-
-        return $this;
-    }
-
     /**
-     * Keep the query string in pagination links: every key but the denied ones, or only the given keys.
+     * Keep the request's query string in pagination links: every key but the
+     * sensitive ones, or only the given keys.
      *
      * @param  list<string>|null  $only
      */
-    public function withQueryString(?array $only = null): static
+    public function withQueryString(?array $only = null): self
     {
         $this->queryString = $only ?? true;
 
@@ -338,92 +224,11 @@ class Response implements Responsable
     }
 
     /**
-     * Drop the query string from pagination links, except the page or cursor parameter.
+     * Keep only the page or cursor parameter in pagination links.
      */
-    public function withoutQueryString(): static
+    public function withoutQueryString(): self
     {
         $this->queryString = false;
-
-        return $this;
-    }
-
-    /**
-     * Send a paginator's items without the pagination metadata.
-     */
-    public function withoutPagination(): static
-    {
-        $this->pagination = false;
-
-        return $this;
-    }
-
-    public function header(string $name, string $value): static
-    {
-        Headers::validate($name, $value);
-
-        $this->headers[$name] = $value;
-
-        return $this;
-    }
-
-    /**
-     * @param  array<string, string>  $headers
-     */
-    public function withHeaders(array $headers): static
-    {
-        foreach ($headers as $name => $value) {
-            $this->header($name, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Run the callback when the value (or the value the closure returns) is truthy, or the default otherwise.
-     *
-     * @param  callable(static, mixed): mixed  $callback
-     * @param  (callable(static, mixed): mixed)|null  $default
-     */
-    public function when(mixed $value, callable $callback, ?callable $default = null): static
-    {
-        $value = $value instanceof Closure ? $value($this) : $value;
-
-        if ($value) {
-            $callback($this, $value);
-        } elseif ($default !== null) {
-            $default($this, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Run the callback when the value (or the value the closure returns) is falsy, or the default otherwise.
-     *
-     * @param  callable(static, mixed): mixed  $callback
-     * @param  (callable(static, mixed): mixed)|null  $default
-     */
-    public function unless(mixed $value, callable $callback, ?callable $default = null): static
-    {
-        $value = $value instanceof Closure ? $value($this) : $value;
-
-        if (! $value) {
-            $callback($this, $value);
-        } elseif ($default !== null) {
-            $default($this, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Change the payload after resources and paginators are resolved and before the envelope is built.
-     *
-     * @param  callable(mixed): mixed  $callback
-     */
-    public function transform(callable $callback): static
-    {
-        $this->transformers[] = $callback;
 
         return $this;
     }
@@ -435,7 +240,11 @@ class Response implements Responsable
     {
         $request = Container::getInstance()->make('request');
 
-        return $this->toResponse($request instanceof Request ? $request : Request::capture());
+        if (! $request instanceof Request) {
+            throw new LogicException('response() needs the current request; call toResponse($request) instead.');
+        }
+
+        return $this->toResponse($request);
     }
 
     /**
@@ -443,31 +252,147 @@ class Response implements Responsable
      */
     public function toResponse($request): SymfonyResponse
     {
-        return (new Finalizer(Container::getInstance()))->finalize($this->state(), $request);
+        if ($this->status === 204 || $this->status === 205) {
+            return new IlluminateResponse('', $this->status);
+        }
+
+        $container = Container::getInstance();
+        $config = $container->make('config');
+
+        if (! $config instanceof Repository) {
+            throw new LogicException('The container has no configuration repository.');
+        }
+
+        $profile = Profiles::resolve($container, $config, $this->profile);
+        $fields = $profile['fields'];
+        $body = [$fields['success'] => ! $this->error, $fields['message'] => $this->message];
+        $shared = $request->attributes->get(self::SHARED_META);
+        $shared = is_array($shared) ? $shared : [];
+        $meta = array_replace($shared, $this->meta);
+
+        if ($this->error) {
+            $body[$fields['errors']] = $this->errors;
+        } else {
+            [$data, $meta] = $this->resolve($request, $config, $shared);
+            $body[$fields['data']] = $data;
+        }
+
+        $body[$fields['meta']] = $meta === [] ? null : $meta;
+
+        if ($this->notifications !== []) {
+            $body[$fields['notifications']] = $this->notifications;
+        }
+
+        if ($this->seo) {
+            $body[$fields['seo']] = $this->seoTags();
+        }
+
+        $requestId = RequestId::of($request);
+
+        if ($requestId !== null && ($this->requestId || $profile['request_id_in_body'])) {
+            $body[$fields['request_id']] = $requestId;
+        }
+
+        $response = new JsonResponse($body, $this->status);
+
+        if ($this->data instanceof JsonResource) {
+            $this->data->withResponse($request, $response);
+        }
+
+        return $response;
     }
 
     /**
-     * @return array{error: bool, status: int, hasData: bool, data: mixed, message: ?string, code: ?string, errors: array<array-key, mixed>|null, meta: array<array-key, mixed>, notifications: list<array{type: string, message: string, title: ?string, duration: ?int, data: array<array-key, mixed>}>, headers: array<string, string>, profile: ?string, seo: bool, requestId: ?bool, queryString: list<string>|bool|null, pagination: bool, transformers: list<callable(mixed): mixed>}
+     * The data to send and its metadata: the shared metadata, a resource's
+     * with() and additional(), then meta(), then the pagination of a paginator
+     * or a collection over one.
+     *
+     * @param  array<array-key, mixed>  $shared
+     * @return array{0: mixed, 1: array<array-key, mixed>}
      */
-    private function state(): array
+    private function resolve(Request $request, Repository $config, array $shared): array
     {
-        return [
-            'error' => $this->error,
-            'status' => $this->status,
-            'hasData' => $this->hasData,
-            'data' => $this->data,
-            'message' => $this->message,
-            'code' => $this->code,
-            'errors' => $this->errors,
-            'meta' => $this->meta,
-            'notifications' => $this->notifications,
-            'headers' => $this->headers,
-            'profile' => $this->profile,
-            'seo' => $this->seo,
-            'requestId' => $this->requestId,
-            'queryString' => $this->queryString,
-            'pagination' => $this->pagination,
-            'transformers' => $this->transformers,
-        ];
+        $data = $this->data;
+        $meta = $shared;
+
+        if ($data instanceof JsonResource) {
+            $meta = array_replace($meta, $this->resourceMeta($data->with($request)), $this->resourceMeta($data->additional));
+            $paginator = $data instanceof ResourceCollection ? $data->resource : null;
+            $data = $data->resolve($request);
+        } else {
+            $paginator = $data;
+        }
+
+        $meta = array_replace($meta, $this->meta);
+
+        if (is_object($paginator)) {
+            $sensitive = $config->get('pharaonic.api-response.pagination.sensitive_query', []);
+            $pagination = new Pagination(
+                $request->query->all(),
+                $this->queryString ?? (bool) $config->get('pharaonic.api-response.pagination.query_string', true),
+                is_array($sensitive) ? array_values(array_filter($sensitive, 'is_string')) : []
+            );
+
+            if ($page = $pagination->resolve($paginator)) {
+                $data = $this->data instanceof JsonResource ? $data : $page['items'];
+                $meta['pagination'] = $page['meta'];
+            }
+        }
+
+        return [$this->normalize($data), $meta];
+    }
+
+    /**
+     * A resource's "meta" key is merged in; its other keys keep their own names.
+     *
+     * @param  array<array-key, mixed>  $extra
+     * @return array<array-key, mixed>
+     */
+    private function resourceMeta(array $extra): array
+    {
+        $meta = isset($extra['meta']) && is_array($extra['meta']) ? $extra['meta'] : [];
+        unset($extra['meta']);
+
+        return array_merge($extra, $meta);
+    }
+
+    /**
+     * Serializes what json_encode() cannot, the way Laravel's JsonResponse does.
+     */
+    private function normalize(mixed $data): mixed
+    {
+        if ($data instanceof JsonSerializable) {
+            return $data;
+        }
+
+        if ($data instanceof Jsonable) {
+            return json_decode($data->toJson(), true, 512, JSON_THROW_ON_ERROR);
+        }
+
+        if ($data instanceof Arrayable) {
+            return $data->toArray();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Reads seo()->toArray() of pharaonic/laravel-seo 6.1 or later, without naming its classes.
+     *
+     * @return array<array-key, mixed>
+     */
+    private function seoTags(): array
+    {
+        $container = Container::getInstance();
+        $manager = $container->bound('pharaonic-seo') ? $container->make('pharaonic-seo') : null;
+        $export = is_object($manager) ? [$manager, 'toArray'] : null;
+
+        if ($export === null || ! is_callable($export)) {
+            throw new LogicException('withSEO() needs pharaonic/laravel-seo 6.1 or later; install it with "composer require pharaonic/laravel-seo".');
+        }
+
+        $tags = $export();
+
+        return is_array($tags) ? $tags : [];
     }
 }

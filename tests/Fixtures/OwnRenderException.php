@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Pharaonic\Laravel\ApiResponse\Tests\Fixtures;
 
-use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use RuntimeException;
 
 class OwnRenderException extends RuntimeException
 {
-    public function render(): Response
+    public function render(): JsonResponse
     {
-        return new Response('own render', 418);
+        return new JsonResponse(['own' => true], 409);
     }
 }

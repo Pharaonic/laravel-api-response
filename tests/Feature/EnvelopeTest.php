@@ -4,259 +4,225 @@ declare(strict_types=1);
 
 namespace Pharaonic\Laravel\ApiResponse\Tests\Feature;
 
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 use Pharaonic\Laravel\ApiResponse\Response;
-use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\Post;
 use Pharaonic\Laravel\ApiResponse\Tests\TestCase;
 
 final class EnvelopeTest extends TestCase
 {
-    public function test_a_success_sends_the_canonical_envelope(): void
+    public function test_a_success_sends_success_message_and_data(): void
     {
-        $response = $this->finalize(Response::success([['id' => 1, 'title' => 'Laravel SEO']])->message('Posts retrieved successfully.'));
+        $response = $this->build(Response::success(['id' => 1]));
 
-        $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('application/json', $response->headers->get('Content-Type'));
-        $this->assertSame('{"success":true,"message":"Posts retrieved successfully.","data":[{"id":1,"title":"Laravel SEO"}]}', $response->getContent());
+        $this->assertSame(['success' => true, 'message' => null, 'data' => ['id' => 1], 'meta' => null], $this->body($response));
     }
 
-    public function test_an_error_sends_its_message_code_and_errors(): void
+    public function test_an_error_sends_success_message_and_errors(): void
     {
-        $response = $this->finalize(Response::error('Insufficient balance.', 422)->code('INSUFFICIENT_BALANCE')->errors(['amount' => ['Too high.']]));
+        $response = $this->build(Response::error('Post not found.', 404));
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame(['success' => false, 'message' => 'Post not found.', 'errors' => null, 'meta' => null], $this->body($response));
+    }
+
+    public function test_an_error_defaults_to_400(): void
+    {
+        $this->assertSame(400, $this->build(Response::error('Bad.'))->getStatusCode());
+    }
+
+    public function test_validation_errors_are_sent_per_field(): void
+    {
+        $response = $this->build(
+            Response::error('Validation failed.', 422)->errors(['email' => ['The email field is required.']])
+        );
 
         $this->assertSame(422, $response->getStatusCode());
-        $this->assertSame([
-            'success' => false,
-            'message' => 'Insufficient balance.',
-            'code' => 'INSUFFICIENT_BALANCE',
-            'errors' => ['amount' => ['Too high.']],
-        ], $this->body($response));
+        $this->assertSame(['email' => ['The email field is required.']], $this->body($response)['errors']);
     }
 
-    public function test_the_status_helpers_set_status_flag_and_code(): void
+    public function test_data_set_to_null_an_empty_array_false_or_zero_is_kept(): void
     {
-        $cases = [
-            [Response::success(), 200, true, null],
-            [Response::created(['id' => 1]), 201, true, null],
-            [Response::accepted(), 202, true, null],
-            [Response::error('Bad.'), 400, false, null],
-            [Response::unauthorized(), 401, false, 'UNAUTHENTICATED'],
-            [Response::forbidden(), 403, false, 'FORBIDDEN'],
-            [Response::notFound(), 404, false, 'NOT_FOUND'],
-            [Response::validationError(['email' => ['Required.']]), 422, false, 'VALIDATION_ERROR'],
-        ];
-
-        foreach ($cases as [$builder, $status, $success, $code]) {
-            $response = $this->finalize($builder);
-            $body = $this->body($response);
-
-            $this->assertSame($status, $response->getStatusCode());
-            $this->assertSame($success, $body['success']);
-            $this->assertSame($code, $body['code'] ?? null);
-        }
-    }
-
-    public function test_validation_error_sends_the_canonical_shape(): void
-    {
-        $body = $this->body($this->finalize(Response::validationError(['email' => ['The email field is required.']])));
-
-        $this->assertSame([
-            'success' => false,
-            'message' => 'The given data was invalid.',
-            'code' => 'VALIDATION_ERROR',
-            'errors' => ['email' => ['The email field is required.']],
-        ], $body);
-    }
-
-    public function test_unset_fields_are_left_out_but_values_the_caller_set_are_kept(): void
-    {
-        $this->assertSame(['success' => true], $this->body($this->finalize(Response::success())));
-
-        foreach ([null, [], false, 0, '', '0'] as $value) {
-            $body = $this->body($this->finalize(Response::success($value)));
+        foreach ([null, [], false, 0, ''] as $value) {
+            $body = $this->body($this->build(Response::success($value)));
 
             $this->assertArrayHasKey('data', $body);
             $this->assertSame($value, $body['data']);
         }
-
-        $this->assertSame(['success' => true, 'message' => ''], $this->body($this->finalize(Response::success()->message(''))));
-        $this->assertSame(['success' => false, 'message' => 'x', 'errors' => []], $this->body($this->finalize(Response::error('x')->errors([]))));
     }
 
-    public function test_an_empty_collection_stays_an_empty_list(): void
+    public function test_modifiers_can_be_called_in_any_order(): void
     {
-        $this->posts(0);
+        $first = Response::success(['id' => 1])->notify('Created.', 'success')->status(201)->message('Post created.');
+        $second = Response::success(['id' => 1])->message('Post created.')->status(201)->notify('Created.', 'success');
 
-        $this->assertSame([], $this->body($this->finalize(Response::success(Post::query()->get())))['data']);
-        $this->assertSame([], $this->body($this->finalize(Response::success(new Collection)))['data']);
+        $this->assertSame($this->build($first)->getContent(), $this->build($second)->getContent());
+        $this->assertSame(201, $this->build($first)->getStatusCode());
     }
 
-    public function test_models_keep_their_serialization_rules(): void
+    public function test_a_builder_can_be_built_twice(): void
     {
-        $this->posts(1);
+        $response = Response::success(['id' => 1])->notify('Once.');
 
-        $body = $this->body($this->finalize(Response::success(Post::query()->first())));
-
-        $this->assertSame(['id' => 1, 'title' => 'Post 1', 'comments' => 0], $body['data']);
-        $this->assertArrayNotHasKey('secret', $body['data']);
+        $this->assertSame($this->build($response)->getContent(), $this->build($response)->getContent());
     }
 
-    public function test_json_serializable_arrayable_and_scalars_are_resolved(): void
+    public function test_it_is_responsable_from_a_route(): void
     {
-        $json = new class implements \JsonSerializable
-        {
-            public function jsonSerialize(): mixed
-            {
-                return ['json' => true];
-            }
-        };
+        $this->app['router']->post('api/posts', fn () => Response::success(['id' => 1])->status(201)->message('Post created.'));
 
-        $this->assertSame(['json' => true], $this->body($this->finalize(Response::success($json)))['data']);
-        $this->assertSame([1, 2], $this->body($this->finalize(Response::success(new Collection([1, 2]))))['data']);
-        $this->assertSame('text', $this->body($this->finalize(Response::success('text')))['data']);
-        $this->assertSame(1.5, $this->body($this->finalize(Response::success(1.5)))['data']);
-    }
-
-    public function test_fluent_calls_give_the_same_response_in_any_order(): void
-    {
-        $a = Response::success(['a' => 1])->message('m')->meta('version', '1.0')->notify('n', 'success')->header('X-A', '1');
-        $b = Response::success()->header('X-A', '1')->notify('n', 'success')->meta('version', '1.0')->data(['a' => 1])->message('m');
-
-        $first = $this->finalize($a);
-        $second = $this->finalize($b);
-
-        $this->assertSame($first->getContent(), $second->getContent());
-        $this->assertSame('1', $second->headers->get('X-A'));
-    }
-
-    public function test_repeated_setters_keep_the_last_value_and_meta_merges(): void
-    {
-        $body = $this->body($this->finalize(
-            Response::success(1)->data(2)->message('a')->message('b')->code('A')->code('B')
-                ->meta('one', 1)->meta(['two' => 2, 'one' => 'replaced'])
-        ));
-
-        $this->assertSame(2, $body['data']);
-        $this->assertSame('b', $body['message']);
-        $this->assertSame('B', $body['code']);
-        $this->assertSame(['one' => 'replaced', 'two' => 2], $body['meta']);
-    }
-
-    public function test_finalizing_twice_gives_the_same_response(): void
-    {
-        $builder = Response::success([1])->notify('Once.')->meta('k', 'v');
-
-        $first = $this->finalize($builder);
-        $second = $this->finalize($builder);
-
-        $this->assertSame($first->getContent(), $second->getContent());
-        $this->assertCount(1, $this->body($second)['notifications']);
-    }
-
-    public function test_it_works_as_a_controller_return_value(): void
-    {
-        $this->app['router']->get('api/posts', fn () => Response::created(['id' => 7])->message('Created.')->header('X-API-Version', '1'));
-
-        $this->getJson('api/posts')
+        $this->postJson('api/posts')
             ->assertStatus(201)
-            ->assertHeader('X-API-Version', '1')
-            ->assertExactJson(['success' => true, 'message' => 'Created.', 'data' => ['id' => 7]]);
+            ->assertExactJson(['success' => true, 'message' => 'Post created.', 'data' => ['id' => 1], 'meta' => null]);
     }
 
-    public function test_response_finalizes_for_the_current_request(): void
+    public function test_response_builds_for_the_current_request(): void
     {
-        $this->app['router']->get('api/direct', fn () => Response::success('ok')->response());
+        $this->app->instance('request', Request::create('/api/posts'));
 
-        $this->getJson('api/direct')->assertOk()->assertExactJson(['success' => true, 'data' => 'ok']);
+        $response = Response::success(['id' => 1])->response();
+
+        $this->assertSame(['success' => true, 'message' => null, 'data' => ['id' => 1], 'meta' => null], $this->body($response));
     }
 
-    public function test_status_must_agree_with_the_kind_of_response(): void
+    public function test_204_and_205_have_no_body(): void
     {
-        foreach ([
-            fn () => Response::success()->status(422),
-            fn () => Response::error('x', 200),
-            fn () => Response::error('x')->status(302),
-            fn () => Response::success()->status(100),
-            fn () => Response::success()->status(600),
-        ] as $call) {
+        foreach ([204, 205] as $status) {
+            $response = $this->build(Response::success(['ignored' => true])->status($status)->notify('Hidden.'));
+
+            $this->assertSame($status, $response->getStatusCode());
+            $this->assertSame('', $response->getContent());
+        }
+    }
+
+    public function test_a_success_refuses_a_status_outside_2xx(): void
+    {
+        foreach ([199, 301, 400, 500] as $status) {
             try {
-                $call();
-                $this->fail('An invalid status was accepted.');
-            } catch (InvalidArgumentException $e) {
-                $this->assertStringContainsString('status', $e->getMessage());
+                Response::success()->status($status);
+                $this->fail("Status {$status} was accepted for a success.");
+            } catch (InvalidArgumentException $exception) {
+                $this->assertStringContainsString((string) $status, $exception->getMessage());
             }
         }
-
-        $this->assertTrue($this->body($this->finalize(Response::success()->status(302)))['success']);
     }
 
-    public function test_fields_must_agree_with_the_kind_of_response(): void
+    public function test_an_error_refuses_a_status_outside_4xx_and_5xx(): void
     {
-        foreach ([
-            fn () => Response::error('x')->data(['id' => 1]),
-            fn () => Response::notFound()->data(null),
-            fn () => Response::success()->errors(['email' => ['Invalid.']]),
-            fn () => Response::created(['id' => 1])->errors([]),
-        ] as $call) {
+        foreach ([200, 204, 399, 600] as $status) {
             try {
-                $call();
-                $this->fail('A field the response cannot carry was accepted.');
-            } catch (InvalidArgumentException $e) {
-                $this->assertMatchesRegularExpression('/cannot carry (data|errors)/', $e->getMessage());
+                Response::error('Nope.', $status);
+                $this->fail("Status {$status} was accepted for an error.");
+            } catch (InvalidArgumentException $exception) {
+                $this->assertStringContainsString((string) $status, $exception->getMessage());
             }
         }
-
-        $this->assertSame(['success' => true], $this->body($this->finalize(Response::success()->errors(null))));
-        $this->assertSame(
-            ['success' => false, 'message' => 'x', 'meta' => ['retry_after' => 30], 'notifications' => [['type' => 'error', 'message' => 'Try later.']]],
-            $this->body($this->finalize(Response::error('x')->meta('retry_after', 30)->notify('Try later.', 'error')->withoutRequestId()))
-        );
     }
 
-    public function test_the_error_code_is_validated(): void
+    public function test_a_success_refuses_errors(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        Response::error('x')->code("BAD\nCODE");
+        Response::success()->errors(['field' => ['Nope.']]);
     }
 
-    public function test_no_content_sends_no_body_and_no_envelope(): void
+    public function test_arrayable_and_jsonable_data_are_serialized(): void
     {
-        $response = $this->finalize(Response::noContent()->notify('Ignored.')->meta('k', 'v')->header('X-Kept', 'yes'));
+        $arrayable = new class implements Arrayable
+        {
+            public function toArray(): array
+            {
+                return ['from' => 'array'];
+            }
+        };
 
-        $this->assertSame(204, $response->getStatusCode());
-        $this->assertSame('', $response->getContent());
-        $this->assertSame('yes', $response->headers->get('X-Kept'));
-        $this->assertNotInstanceOf(JsonResponse::class, $response);
+        $jsonable = new class implements Jsonable
+        {
+            public function toJson($options = 0): string
+            {
+                return '{"from":"json"}';
+            }
+        };
+
+        $this->assertSame(['from' => 'array'], $this->body($this->build(Response::success($arrayable)))['data']);
+        $this->assertSame(['from' => 'json'], $this->body($this->build(Response::success($jsonable)))['data']);
+        $this->assertSame([1, 2], $this->body($this->build(Response::success(collect([1, 2]))))['data']);
     }
 
-    public function test_a_304_sends_no_body(): void
+    public function test_an_ordinary_laravel_response_is_left_alone(): void
     {
-        $response = $this->finalize(Response::success(['a' => 1])->status(304));
+        $this->app['router']->get('api/plain', fn () => ['plain' => true]);
+        $this->app['router']->get('page', fn () => 'Hello');
 
-        $this->assertSame(304, $response->getStatusCode());
-        $this->assertSame('', $response->getContent());
+        $this->getJson('api/plain')->assertExactJson(['plain' => true]);
+        $this->get('page')->assertSee('Hello');
     }
 
-    public function test_a_head_request_gets_headers_without_a_body(): void
+    public function test_notifications_are_sent_in_order(): void
     {
-        $response = $this->finalize(Response::success(['a' => 1])->header('X-A', '1'), '/api/posts', 'HEAD');
+        $body = $this->body($this->build(
+            Response::success()->notify('Saved.', 'success')->notify('Check your email.')->notify('Quota low.', 'warning')
+        ));
 
-        $this->assertSame(200, $response->getStatusCode());
-        $this->assertSame('', $response->getContent());
-        $this->assertSame('1', $response->headers->get('X-A'));
-        $this->assertSame('application/json', $response->headers->get('Content-Type'));
+        $this->assertSame([
+            ['type' => 'success', 'message' => 'Saved.'],
+            ['type' => 'info', 'message' => 'Check your email.'],
+            ['type' => 'warning', 'message' => 'Quota low.'],
+        ], $body['notifications']);
     }
 
-    public function test_through_the_kernel_204_and_head_stay_bodyless(): void
+    public function test_an_error_can_notify(): void
     {
-        $this->app['router']->get('api/empty', fn () => Response::noContent());
-        $this->app['router']->get('api/head', fn () => Response::success(['a' => 1]));
+        $body = $this->body($this->build(Response::error('Failed.')->notify('Try again.', 'error')));
 
-        $this->assertSame('', $this->getJson('api/empty')->assertStatus(204)->getContent());
-        $this->assertSame('', $this->call('HEAD', 'api/head')->assertOk()->getContent());
+        $this->assertSame([['type' => 'error', 'message' => 'Try again.']], $body['notifications']);
+    }
+
+    public function test_an_unknown_notification_type_is_refused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('[danger]');
+
+        Response::success()->notify('Nope.', 'danger');
+    }
+
+    public function test_optional_fields_are_left_out_when_unused(): void
+    {
+        $this->assertSame(['success', 'message', 'data', 'meta'], array_keys($this->body($this->build(Response::success()))));
+        $this->assertSame(['success', 'message', 'errors', 'meta'], array_keys($this->body($this->build(Response::error('Nope.')))));
+    }
+
+    public function test_meta_is_null_until_something_is_added(): void
+    {
+        $this->assertNull($this->body($this->build(Response::success()))['meta']);
+        $this->assertNull($this->body($this->build(Response::error('Nope.')))['meta']);
+    }
+
+    public function test_meta_adds_one_key_or_many(): void
+    {
+        $body = $this->body($this->build(
+            Response::success()->meta('version', '1.0')->meta(['count' => 3, 'version' => '2.0'])->meta('flags', [])
+        ));
+
+        $this->assertSame(['version' => '2.0', 'count' => 3, 'flags' => []], $body['meta']);
+    }
+
+    public function test_an_error_can_carry_meta(): void
+    {
+        $body = $this->body($this->build(Response::error('Insufficient balance.', 422)->meta('balance', 10)));
+
+        $this->assertSame(['balance' => 10], $body['meta']);
+    }
+
+    public function test_the_pagination_meta_key_is_reserved(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('[pagination]');
+
+        Response::success()->meta('pagination', []);
     }
 }

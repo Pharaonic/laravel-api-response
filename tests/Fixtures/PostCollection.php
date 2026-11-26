@@ -14,17 +14,4 @@ class PostCollection extends ResourceCollection
     {
         return ['meta' => ['collection' => true]];
     }
-
-    /**
-     * @param  array<string, mixed>  $paginated
-     * @param  array<string, mixed>  $default
-     * @return array<string, mixed>
-     */
-    public function paginationInformation($request, $paginated, $default)
-    {
-        $default['pagination']['custom'] = true;
-        $default['source'] = 'collection';
-
-        return $default;
-    }
 }

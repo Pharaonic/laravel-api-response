@@ -13,6 +13,4 @@ class Post extends Model
     protected $guarded = [];
 
     protected $hidden = ['secret'];
-
-    protected $casts = ['comments' => 'integer'];
 }

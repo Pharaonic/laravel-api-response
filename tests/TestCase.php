@@ -16,13 +16,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 abstract class TestCase extends Orchestra
 {
-    protected function tearDown(): void
-    {
-        Response::flushMacros();
-
-        parent::tearDown();
-    }
-
     /**
      * @param  Application  $app
      * @return array<int, class-string>
@@ -57,13 +50,11 @@ abstract class TestCase extends Orchestra
     }
 
     /**
-     * Finalize a response for a request to the given URI.
-     *
-     * @param  array<string, string>  $server
+     * Build a response for a request to the given URI.
      */
-    protected function finalize(Response $response, string $uri = '/api/posts', string $method = 'GET', array $server = []): SymfonyResponse
+    protected function build(Response $response, string $uri = '/api/posts'): SymfonyResponse
     {
-        $request = Request::create($uri, $method, [], [], [], $server);
+        $request = Request::create($uri);
         $this->app->instance('request', $request);
 
         return $response->toResponse($request);
@@ -97,7 +88,6 @@ abstract class TestCase extends Orchestra
             $table->increments('id');
             $table->string('title');
             $table->string('secret')->nullable();
-            $table->unsignedInteger('comments')->default(0);
         });
 
         for ($i = 1; $i <= $count; $i++) {

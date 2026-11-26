@@ -10,44 +10,25 @@ use Pharaonic\Laravel\ApiResponse\Tests\TestCase;
 
 final class ServiceProviderTest extends TestCase
 {
-    public function test_it_registers_the_service_provider(): void
+    public function test_the_config_is_merged_under_pharaonic(): void
     {
-        $this->assertNotEmpty($this->app->getProviders(ApiResponseServiceProvider::class));
+        $this->assertSame('default', $this->app['config']->get('pharaonic.api-response.default_profile'));
+        $this->assertSame('X-Request-ID', $this->app['config']->get('pharaonic.api-response.request_id.header'));
+        $this->assertSame(['api/*'], $this->app['config']->get('pharaonic.api-response.exceptions.paths'));
     }
 
-    public function test_it_merges_the_package_configuration(): void
+    public function test_the_config_is_published_under_four_tags(): void
     {
-        $this->assertSame('default', config('pharaonic.api-response.default_profile'));
-        $this->assertSame(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES, config('pharaonic.api-response.json_options'));
-    }
-
-    public function test_it_publishes_the_configuration_under_the_four_tags(): void
-    {
-        $target = $this->app->configPath('pharaonic/api-response.php');
-
         foreach (['pharaonic', 'laravel-api-response', 'pharaonic-config', 'api-response-config'] as $tag) {
-            $this->assertContains($target, ServiceProvider::pathsToPublish(ApiResponseServiceProvider::class, $tag), $tag);
+            $paths = ServiceProvider::pathsToPublish(ApiResponseServiceProvider::class, $tag);
+
+            $this->assertCount(1, $paths, $tag);
+            $this->assertSame($this->app->configPath('pharaonic/api-response.php'), array_values($paths)[0]);
         }
     }
 
-    public function test_it_publishes_the_translations_under_the_four_tags(): void
+    public function test_nothing_else_is_published(): void
     {
-        $target = $this->app->resourcePath('lang/vendor/api-response');
-
-        foreach (['pharaonic', 'laravel-api-response', 'pharaonic-translations', 'api-response-translations'] as $tag) {
-            $this->assertContains($target, ServiceProvider::pathsToPublish(ApiResponseServiceProvider::class, $tag), $tag);
-        }
-    }
-
-    public function test_every_locale_has_the_english_keys(): void
-    {
-        $english = require __DIR__.'/../../resources/lang/en/messages.php';
-
-        foreach (glob(__DIR__.'/../../resources/lang/*/messages.php') ?: [] as $file) {
-            $lines = require $file;
-
-            $this->assertSame(array_keys($english), array_keys($lines), $file);
-            $this->assertSame(array_keys($english['status']), array_keys($lines['status']), $file);
-        }
+        $this->assertCount(1, ServiceProvider::pathsToPublish(ApiResponseServiceProvider::class));
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "pharaonic/laravel-api-response",
-  "description": "Consistent Laravel API responses: one envelope for data, errors, resources and every paginator, with profiles, notifications, request IDs and opt-in exception rendering.",
+  "description": "Consistent Laravel API responses: one envelope for success and error responses, resources and every paginator, with profiles, notifications, request IDs and opt-in exception rendering.",
   "type": "library",
   "license": "MIT",
   "keywords": [

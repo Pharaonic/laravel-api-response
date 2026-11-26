@@ -8,7 +8,7 @@ use Orchestra\Testbench\Exceptions\Handler;
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 
 /**
- * An application handler wired the way the documentation shows for Laravel 6 and 7.
+ * An application handler wired the way the documentation shows for Laravel 6.
  */
 class ApiExceptionHandler extends Handler
 {
