@@ -52,7 +52,7 @@ return Response::success(Post::query()->paginate(15));
 
 ### Cursor
 
-Cursor paginators exist from Laravel 8.41. They have no page numbers or totals:
+`cursorPaginate()` has no page numbers or totals:
 
 ```json title="meta.pagination" no-copy
 {

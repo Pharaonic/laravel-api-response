@@ -8,7 +8,7 @@ One controller with the common responses:
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PostResource;
-use App\Post;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Pharaonic\Laravel\ApiResponse\Response;
 

@@ -1,10 +1,10 @@
 <p align="center"><a href="https://pharaonic.dev/packages/laravel/api-response" target="_blank"><img src="https://raw.githubusercontent.com/Pharaonic/laravel-api-response/develop/docs/cover.webp"></a></p>
 
 <p align="center">
-  <a href="https://php.net" target="_blank"><img src="https://img.shields.io/static/v1?label=PHP&message=8.0&color=blue&style=flat-square" alt="PHP Version : 8.0"></a>
-  <a href="https://laravel.com" target="_blank"><img src="https://img.shields.io/static/v1?label=Laravel&message=7.x&color=F05340&style=flat-square" alt="Laravel Version : 7.x"></a>
+  <a href="https://php.net" target="_blank"><img src="https://img.shields.io/static/v1?label=PHP&message=8.0%20|%208.1&color=blue&style=flat-square" alt="PHP Version : 8.0 | 8.1"></a>
+  <a href="https://laravel.com" target="_blank"><img src="https://img.shields.io/static/v1?label=Laravel&message=8.x&color=F05340&style=flat-square" alt="Laravel Version : 8.x"></a>
   <img src="https://img.shields.io/static/v1?label=License&message=MIT&color=brightgreen&style=flat-square" alt="License">
-  <img src="https://github.com/Pharaonic/laravel-api-response/actions/workflows/build.yml/badge.svg?branch=7.x" alt="Build">
+  <img src="https://github.com/Pharaonic/laravel-api-response/actions/workflows/build.yml/badge.svg?branch=8.x" alt="Build">
   <br>
   <a href="https://packagist.org/packages/Pharaonic/laravel-api-response" target="_blank"><img src="https://img.shields.io/static/v1?label=Packagist&message=pharaonic/laravel-api-response&color=blue&logo=packagist&logoColor=white" alt="Source"></a>
   <a href="https://packagist.org/packages/pharaonic/laravel-api-response" target="_blank"><img src="https://poser.pugx.org/pharaonic/laravel-api-response/v" alt="Packagist Version"></a>
@@ -36,7 +36,7 @@ php artisan vendor:publish --tag=api-response-translations
 
 ```php
 use App\Http\Resources\PostResource;
-use App\Post;
+use App\Models\Post;
 use Pharaonic\Laravel\ApiResponse\Response;
 
 class PostController
