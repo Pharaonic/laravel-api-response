@@ -40,6 +40,8 @@ final class Response implements Responsable
 
     private ?string $message = null;
 
+    private ?string $code = null;
+
     /** @var array<array-key, mixed>|null */
     private ?array $errors = null;
 
@@ -118,6 +120,21 @@ final class Response implements Responsable
         }
 
         $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * A stable identifier of an error for the client to act on, such as auth.expired.
+     * Every error sends it, null until it is set.
+     */
+    public function code(?string $code): self
+    {
+        if (! $this->error) {
+            throw new InvalidArgumentException('A success cannot carry a code; use Response::error().');
+        }
+
+        $this->code = $code;
 
         return $this;
     }
@@ -315,6 +332,7 @@ final class Response implements Responsable
         $meta = array_replace($shared, $this->meta);
 
         if ($this->error) {
+            $body[$fields['code']] = $this->code;
             $body[$fields['errors']] = $this->errors;
         } else {
             [$data, $meta] = $this->resolve($request, $config, $shared);

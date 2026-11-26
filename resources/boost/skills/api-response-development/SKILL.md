@@ -59,6 +59,7 @@ use Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId;
 | `Response::error(string $message, int $status = 400)` | Error; status 400–599. |
 | `->message(?string)` | Sets `message` (sent as `null` when not set). |
 | `->status(int)` | 2xx for a success, 4xx/5xx for an error; 204 and 205 send no body. A wrong status throws `InvalidArgumentException`. |
+| `->code(?string)` | Error code, e.g. `auth.expired`; every error sends `code`, `null` until set. Throws on a success. |
 | `->errors(?array)` | Error details, e.g. `['email' => ['...']]`. Throws on a success. |
 | `->meta(string\|array $key, mixed $value = null)` | Adds metadata; later values win. `pagination` is reserved. |
 | `Response::shareMeta(string\|array $key, mixed $value = null)` | Adds metadata to every response of the current request (call it in a middleware). Stored on the request. |
@@ -69,7 +70,7 @@ use Pharaonic\Laravel\ApiResponse\Http\Middleware\AssignRequestId;
 | `->withSEO()` | Adds `seo` from pharaonic/laravel-seo (`seo()->toArray()`). Throws `LogicException` when the package is missing. |
 | `->response()` / `->toResponse($request)` | Builds the concrete response, e.g. to add a header. |
 
-Body order: `success`, `message`, `data` or `errors`, `meta`, then `notifications`, `seo`, `request_id` when present. Metadata merges `shareMeta()`, a resource's `with()`/`additional()`, `meta()`, then `pagination`.
+Body order: `success`, `message`, `data` (success) or `code` and `errors` (error), `meta`, then `notifications`, `seo`, `request_id` when present. Metadata merges `shareMeta()`, a resource's `with()`/`additional()`, `meta()`, then `pagination`.
 
 ### Pagination
 
@@ -97,7 +98,7 @@ class MobileProfile extends Profile
 // config: 'profiles' => ['default' => Profile::class, 'mobile' => MobileProfile::class]
 ```
 
-Renamable fields: `success`, `message`, `data`, `errors`, `meta`, `notifications`, `seo`, `request_id`. Profiles are built by the container. A profile never adds SEO.
+Renamable fields: `success`, `message`, `code`, `data`, `errors`, `meta`, `notifications`, `seo`, `request_id`. Profiles are built by the container. A profile never adds SEO.
 
 ### Exception renderer
 
