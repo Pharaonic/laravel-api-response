@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 7.0.1 - Unreleased
+
+### Fixed
+
+- Only an HTTP exception is read through its previous exception, so an unrelated exception that wraps a `ModelNotFoundException` sends a 500, not a 404.
+
 ## 7.0.0 - 2026-11-26
 
 ### Added

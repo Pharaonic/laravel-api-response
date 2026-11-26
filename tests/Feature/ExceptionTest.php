@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\ConfiguredProfile;
 use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\OwnRenderException;
 use Pharaonic\Laravel\ApiResponse\Tests\Fixtures\Post;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 beforeEach(function () {
     $this->useApiExceptionHandler();
@@ -174,4 +176,18 @@ test('errors follow the default profile', function () {
     $this->throwing('api/conflict', new HttpException(409, 'Already exists.'));
 
     $this->getJson('api/conflict')->assertExactJson(['success' => false, 'msg' => 'Already exists.', 'problems' => null, 'meta' => null]);
+});
+
+test('only an http exception is read through its previous exception', function () {
+    $this->throwing('api/wrapped', new RuntimeException('Failed.', 0, new ModelNotFoundException));
+
+    $this->getJson('api/wrapped')->assertStatus(500)->assertJson(['message' => 'Server Error.']);
+});
+
+test('a prepared http exception is read through its cause', function () {
+    $this->throwing('api/model', new NotFoundHttpException('No query results for model [App\\Post] 1', new ModelNotFoundException));
+    $this->throwing('api/csrf', new HttpException(419, '', new TokenMismatchException));
+
+    $this->getJson('api/model')->assertStatus(404)->assertJson(['message' => 'Not Found.']);
+    $this->getJson('api/csrf')->assertStatus(419)->assertJson(['message' => 'CSRF token mismatch.']);
 });
