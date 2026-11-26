@@ -40,12 +40,13 @@ The renderer also returns `null`, leaving the exception to Laravel, for:
 {
   "success": false,
   "message": "The email field must be a valid email address.",
+  "code": null,
   "errors": {"email": ["The email field must be a valid email address."]},
   "meta": null
 }
 ```
 
-An HTTP exception keeps its headers, such as `Retry-After` and `X-RateLimit-*` from throttling, `Allow` from a 405, or a `WWW-Authenticate` challenge. When the [`AssignRequestId` middleware](#request-ids) runs, the error carries the request ID in its header and body like any other response, and metadata shared with `Response::shareMeta()` joins its `meta`.
+The renderer sets no code, so `code` is always `null` on the errors it renders. An HTTP exception keeps its headers, such as `Retry-After` and `X-RateLimit-*` from throttling, `Allow` from a 405, or a `WWW-Authenticate` challenge. When the [`AssignRequestId` middleware](#request-ids) runs, the error carries the request ID in its header and body like any other response, and metadata shared with `Response::shareMeta()` joins its `meta`.
 
 :::danger Nothing about a server error is sent
 A 500 sends only "Server Error.": no exception class, message, file, trace or SQL. A missing model sends only "Not Found.", never the model class or the keys.
