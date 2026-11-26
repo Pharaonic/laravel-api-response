@@ -58,7 +58,7 @@ Profiles are built by the container for each response, so a constructor may type
 
 ### Rules
 
-- Fields you can rename: `success`, `message`, `data`, `errors`, `meta`, `notifications`, `seo`, `request_id`.
+- Fields you can rename: `success`, `message`, `code`, `data`, `errors`, `meta`, `notifications`, `seo`, `request_id`.
 - An unknown profile name, a class that does not extend `Profile`, an unknown field, an empty name, or two fields under the same name throw an `InvalidArgumentException` when the response is built.
 - A profile never adds SEO tags; only [`withSEO()`](#seo) does.
 - `withRequestId()` adds the request ID to one response even when its profile leaves it out.
