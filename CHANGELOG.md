@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented here.
 
+## 6.1.0 - Unreleased
+
+A redesign around a smaller API. It breaks 6.0 code on purpose: 6.0.0 had been out for a day, and its surface was much larger than an API envelope needs.
+
+### Behavior Changes from 6.0.x
+
+- `Response` starts a response only with `success()` and `error()`, and `Response::shareMeta()` adds metadata to every response of the current request, such as from a middleware. `created()`, `accepted()`, `noContent()`, `unauthorized()`, `forbidden()`, `notFound()` and `validationError()` are removed; use `status()` and `errors()`.
+- The fluent methods are `message()`, `status()`, `errors()`, `notify()`, `profile()`, `withSEO()`, `withRequestId()`, `withQueryString()`, `withoutQueryString()`, `meta()`, `response()` and `toResponse()`. `data()`, `code()`, `header()`, `withHeaders()`, `withoutRequestId()`, `withoutPagination()`, `when()`, `unless()`, `transform()`, `macro()` and `flushMacros()` are removed, and the class is final.
+- The envelope always sends `message`, `data` on a success or `errors` on an error, and `meta`, `null` included (`meta` is `null` while empty). The `code` field and the built-in error codes are removed.
+- A success needs a 2xx status (3xx is refused). 205 is bodyless like 204. JSON is encoded with Laravel's default `JsonResponse` options, so the `json_options` setting is removed.
+- `meta.pagination` is flat: `type`, then `current_page`, `last_page`, `per_page`, `total`, `from`, `to`, `has_more_pages` (length-aware), the same without `total` and `last_page` (simple), or `per_page`, `next_cursor`, `prev_cursor`, `has_more_pages` (cursor), then `links`. `paginationInformation()` of resource collections is no longer read. `pagination.enabled`, `pagination.adapters` and `Contracts\PaginationAdapter` are removed, and `pagination.query_string.except` is now `pagination.sensitive_query`.
+- A profile is now a class extending `Profile` (was `Profiles\Profile`) with only `fields()`, which returns just the renamed fields, and `requestIdInBody()`; `body()`, `pagination()`, `notification()`, `headers()`, `includesRequestId()` and `paginates()` are removed. The `UseResponseProfile` middleware, content negotiation and `envelope.fields` are removed.
+- Notifications are `{type, message}`; `notify()` takes only a message and a type (`success`, `info`, `warning` or `error`, `info` by default). The `notifications` settings are removed.
+- `ExceptionRenderer` has no mappers (`exceptions.mappers` and `Contracts\ExceptionMapper` are removed), no longer reads `errorCode()` or `localizedMessage()`, and leaves exceptions with a `render()` method to Laravel. With `app.debug` on, an unexpected exception is left to Laravel's debug output instead of `meta.debug`. A `ModelNotFoundException` Laravel has turned into a 404 never sends the model name.
+- The `api-response` translations are removed. The package's own messages go through the application's JSON translations (`__('Server Error.')`).
+- `AssignRequestId` always generates a UUID; `request_id.generator`, `request_id.max_length` (now fixed at 128) and `request_id.include_in_body` (now `requestIdInBody()` per profile) are removed.
+- `withSEO()` without pharaonic/laravel-seo always throws; `seo.missing_driver` is removed.
+
+### Compatibility
+
+- Laravel 6 on PHP 8.0.
+
 ## 6.0.0 - 2026-11-25
 
 ### Added
