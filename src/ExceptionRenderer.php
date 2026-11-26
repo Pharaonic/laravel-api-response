@@ -103,12 +103,15 @@ final class ExceptionRenderer
             return Response::error($this->framework($exception->getMessage()) ?: $this->message('forbidden', 'This action is unauthorized.'), 403);
         }
 
+        // From Laravel 8 the handler passes these as the HTTP exception it made of them.
+        $cause = $exception instanceof HttpExceptionInterface ? ($exception->getPrevious() ?? $exception) : $exception;
+
         // Laravel's message names the model class and the keys, so it is never sent.
-        if ($exception instanceof ModelNotFoundException || $exception->getPrevious() instanceof ModelNotFoundException) {
+        if ($cause instanceof ModelNotFoundException) {
             return Response::error($this->message('not_found', 'Not Found.'), 404);
         }
 
-        if ($exception instanceof TokenMismatchException) {
+        if ($cause instanceof TokenMismatchException) {
             return Response::error($this->message('page_expired', 'CSRF token mismatch.'), 419);
         }
 
