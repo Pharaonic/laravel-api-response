@@ -4,15 +4,14 @@
 
 ### Registering the Renderer
 
-On Laravel 7, call it from `render()` in your application's handler, and let Laravel render anything it returns `null` for:
+On Laravel 8, register it with `renderable()` in the `register()` method of your application's handler. Laravel renders anything it returns `null` for:
 
 ```php title="app/Exceptions/Handler.php"
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
-use Throwable;
 
-public function render($request, Throwable $exception)
+public function register()
 {
-    return (new ExceptionRenderer)($exception, $request) ?? parent::render($request, $exception);
+    $this->renderable(new ExceptionRenderer);
 }
 ```
 

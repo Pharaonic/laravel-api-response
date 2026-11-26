@@ -8,22 +8,22 @@ use Orchestra\Testbench\Exceptions\Handler;
 use Pharaonic\Laravel\ApiResponse\ExceptionRenderer;
 
 /**
- * An application handler wired the way the documentation shows for Laravel 6.
+ * An application handler wired the way the documentation shows for Laravel 8 to 10.
  */
 class ApiExceptionHandler extends Handler
 {
     /** @var list<string> */
     public array $reported = [];
 
+    public function register()
+    {
+        $this->renderable(new ExceptionRenderer);
+    }
+
     public function report($e)
     {
         $this->reported[] = get_class($e);
 
         parent::report($e);
-    }
-
-    public function render($request, $e)
-    {
-        return (new ExceptionRenderer)($e, $request) ?? parent::render($request, $e);
     }
 }

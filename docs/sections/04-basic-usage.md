@@ -9,7 +9,7 @@ Laravel has its own `Response` facade, so import `Pharaonic\Laravel\ApiResponse\
 :::
 
 ```php title="app/Http/Controllers/PostController.php"
-use App\Post;
+use App\Models\Post;
 use Pharaonic\Laravel\ApiResponse\Response;
 
 public function show(Post $post)

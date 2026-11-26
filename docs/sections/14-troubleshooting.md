@@ -2,7 +2,7 @@
 
 ### My exceptions still render as HTML
 
-The renderer is not registered, or the request is not an API request. Register it in your handler's `render()` ([Exception Rendering](#exceptions)), and send `Accept: application/json` or add the path to `exceptions.paths`.
+The renderer is not registered, or the request is not an API request. Register it with `renderable()` in your handler's `register()` ([Exception Rendering](#exceptions)), and send `Accept: application/json` or add the path to `exceptions.paths`.
 
 ### A 500 shows Laravel's debug output instead of the envelope
 
@@ -10,7 +10,7 @@ That happens while `app.debug` is on, so you can see the exception. With `app.de
 
 ### An exception keeps its own JSON
 
-Exceptions with a `render()` method or their own response are left to Laravel. Return an `Response` from that `render()` method if you want the envelope.
+Exceptions with a `render()` method or their own response are left to Laravel. Return a `Response` from that `render()` method if you want the envelope.
 
 ### InvalidArgumentException: The response profile [...] is not defined
 
@@ -26,4 +26,4 @@ The key is in `pagination.sensitive_query`, the response calls `withQueryString(
 
 ### LogicException: withSEO() needs pharaonic/laravel-seo
 
-Install it with `composer require pharaonic/laravel-seo` (7.1 or later), or remove the `withSEO()` call.
+Install it with `composer require pharaonic/laravel-seo` (8.1 or later), or remove the `withSEO()` call.

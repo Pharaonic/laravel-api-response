@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -174,4 +175,10 @@ test('errors follow the default profile', function () {
     $this->throwing('api/conflict', new HttpException(409, 'Already exists.'));
 
     $this->getJson('api/conflict')->assertExactJson(['success' => false, 'msg' => 'Already exists.', 'problems' => null, 'meta' => null]);
+});
+
+test('only an http exception is read through its previous exception', function () {
+    $this->throwing('api/wrapped', new RuntimeException('Failed.', 0, new ModelNotFoundException));
+
+    $this->getJson('api/wrapped')->assertStatus(500)->assertJson(['message' => 'Server Error.']);
 });

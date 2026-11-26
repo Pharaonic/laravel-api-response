@@ -6,7 +6,7 @@ file: app/Http/Controllers/PostController.php
 language: php
 code: |
   use App\Http\Resources\PostResource;
-  use App\Post;
+  use App\Models\Post;
   use Pharaonic\Laravel\ApiResponse\Response;
 
   public function index()
